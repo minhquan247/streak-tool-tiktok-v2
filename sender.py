@@ -239,13 +239,19 @@ class TikTokSender:
             for cookie in cookies:
                 if cookie.get("session", False):
                     continue
+                exp_val = cookie.get("expirationDate") or cookie.get("expires")
+                try:
+                    exp_timestamp = int(float(exp_val)) if exp_val is not None else int(time.time() + 86400 * 30)
+                except (ValueError, TypeError):
+                    exp_timestamp = int(time.time() + 86400 * 30)
+
                 converted.append(
                     {
                         "name": cookie["name"],
                         "value": cookie["value"],
                         "domain": cookie["domain"],
                         "path": cookie.get("path", "/"),
-                        "expires": int(cookie["expirationDate"]),
+                        "expires": exp_timestamp,
                         "httpOnly": cookie.get("httpOnly", False),
                         "secure": cookie.get("secure", False),
                         "sameSite": same_site_map.get(
@@ -271,7 +277,7 @@ class TikTokSender:
         return True
 
     async def _ensure_logged_in(self, page: Page, cookies_loaded: bool = False) -> None:
-        await page.goto("https://www.tiktok.com/messages", wait_until="domcontentloaded")
+        await page.goto("https://www.tiktok.com/messages", wait_until="domcontentloaded", timeout=30000)
         await handle_screen_time_popup(page)
         await handle_sleep_hours_popup(page)
         await wait_for_captcha_if_present(page, self.notifier)
@@ -307,13 +313,15 @@ class TikTokSender:
             if isinstance(video, str) and video.strip()
         ]
         if not videos:
-            raise ValueError("No videos configured. Add links to the 'videos' list in config.json.")
-        video_link = random.choice(videos)
+            video_link = "https://www.tiktok.com/@tiktok"
+        else:
+            video_link = random.choice(videos)
+
         logger.info("Selected video for %s (@%s): %s", name, username, video_link)
         page = await timed_await(f"new page for @{username}", context.new_page())
         try:
             total_start = time.time()
-            logger.info("Resolving TikTok display name for %s (@%s)", name, username)
+            logger.info("Selecting recipient for %s (@%s)", name, username)
             await timed_await(f"select recipient for @{username}", self._select_recipient(page, username))
             await timed_await(
                 f"post-select captcha wait for @{username}",
@@ -349,189 +357,102 @@ class TikTokSender:
 
     async def _select_recipient(self, page: Page, username: str) -> None:
         normalized_username = username.lstrip("@")
-        profile_start = time.time()
-        await timed_await(
-            f"profile goto for @{normalized_username}",
-            page.goto(f"https://www.tiktok.com/@{normalized_username}", wait_until="domcontentloaded"),
-        )
-        await timed_await(
-            f"profile screen time popup check for @{normalized_username}",
-            handle_screen_time_popup(page),
-        )
-        await timed_await(
-            f"profile sleep hours popup check for @{normalized_username}",
-            handle_sleep_hours_popup(page),
-        )
-        await timed_await(
-            f"profile captcha wait for @{normalized_username}",
-            wait_for_captcha_if_present(page, self.notifier),
-        )
-        await timed_await(
-            f"profile post-captcha screen time popup check for @{normalized_username}",
-            handle_screen_time_popup(page),
-        )
-        await timed_await(
-            f"profile post-captcha sleep hours popup check for @{normalized_username}",
-            handle_sleep_hours_popup(page),
-        )
-        log_duration(f"profile navigation for @{normalized_username}", profile_start)
 
-        display_start = time.time()
-        display_name_locator = page.locator("h1[data-e2e='user-title']").first
-        if await timed_await(
-            f"display name primary locator count for @{normalized_username}",
-            display_name_locator.count(),
-        ) == 0:
-            display_name_locator = page.locator("[data-e2e='user-title']").first
-        await timed_await(
-            f"display name wait_for for @{normalized_username}",
-            display_name_locator.wait_for(state="visible"),
-        )
-        display_name = (
-            await timed_await(
-                f"display name inner_text for @{normalized_username}",
-                display_name_locator.inner_text(),
-            )
-        ).strip()
-        log_duration(f"display name extraction for @{normalized_username}", display_start)
+        # Method 1: Try Direct Message button on TikTok user profile page
+        self.log_status(f"Mở trang cá nhân TikTok của @{normalized_username}...")
+        try:
+            await page.goto(f"https://www.tiktok.com/@{normalized_username}", wait_until="domcontentloaded", timeout=25000)
+            await handle_screen_time_popup(page)
+            await handle_sleep_hours_popup(page)
+            await wait_for_captcha_if_present(page, self.notifier)
 
-        logger.info(
-            "Resolved TikTok username @%s to display name %s",
-            normalized_username,
-            display_name,
-        )
+            msg_btn = page.locator(
+                "[data-e2e='user-message-btn'], "
+                "button[aria-label*='Message' i], "
+                "button[aria-label*='Nhắn' i], "
+                "button:has-text('Message'), "
+                "button:has-text('Nhắn tin')"
+            ).first
 
-        messages_start = time.time()
-        await timed_await(
-            f"messages goto for @{normalized_username}",
-            page.goto("https://www.tiktok.com/messages", wait_until="domcontentloaded"),
-        )
-        await timed_await(
-            f"messages screen time popup check for @{normalized_username}",
-            handle_screen_time_popup(page),
-        )
-        await timed_await(
-            f"messages sleep hours popup check for @{normalized_username}",
-            handle_sleep_hours_popup(page),
-        )
-        await timed_await(
-            f"messages captcha wait for @{normalized_username}",
-            wait_for_captcha_if_present(page, self.notifier),
-        )
-        await timed_await(
-            f"messages post-captcha screen time popup check for @{normalized_username}",
-            handle_screen_time_popup(page),
-        )
-        await timed_await(
-            f"messages post-captcha sleep hours popup check for @{normalized_username}",
-            handle_sleep_hours_popup(page),
-        )
-        log_duration(f"messages navigation for @{normalized_username}", messages_start)
+            if await msg_btn.count() > 0:
+                self.log_status(f"Bấm nút 'Nhắn tin' trên trang cá nhân @{normalized_username}...")
+                await msg_btn.click(timeout=5000)
+                await page.wait_for_timeout(2000)
+                await handle_screen_time_popup(page)
+                await handle_sleep_hours_popup(page)
+                await wait_for_captcha_if_present(page, self.notifier)
 
-        conversation_list = page.locator("[data-e2e='dm-new-conversation-list']").first
-        conversation_items = page.locator("[data-e2e='dm-new-conversation-item']")
-        await timed_await(
-            f"conversation items first wait_for for @{normalized_username}",
-            conversation_items.first.wait_for(state="visible"),
-        )
-
-        normalized_display_name = display_name.casefold()
-        loop_start = time.time()
-        for scroll_index in range(10):
-            scroll_iteration_start = time.time()
-            item_count = await timed_await(
-                f"conversation item count scroll {scroll_index + 1} for @{normalized_username}",
-                conversation_items.count(),
-            )
-            for index in range(item_count):
-                item = conversation_items.nth(index)
-                nickname = item.locator("[data-e2e='dm-new-conversation-nickname']")
-                nickname_text = (
-                    await timed_await(
-                        f"nickname inner_text item {index + 1} scroll {scroll_index + 1} for @{normalized_username}",
-                        nickname.inner_text(),
-                    )
-                ).strip()
-                normalized_nickname = nickname_text.casefold()
-
-                if normalized_nickname == normalized_display_name:
-                    await timed_await(
-                        f"conversation item click for @{normalized_username}",
-                        item.click(),
-                    )
-                    await timed_await(
-                        f"conversation click screen time popup check for @{normalized_username}",
-                        handle_screen_time_popup(page),
-                    )
-                    await timed_await(
-                        f"conversation click sleep hours popup check for @{normalized_username}",
-                        handle_sleep_hours_popup(page),
-                    )
-                    log_duration(f"conversation scroll/search loop for @{normalized_username}", loop_start)
-                    editable_elements = await timed_await(
-                        f"editable elements evaluate for @{normalized_username}",
-                        page.evaluate(
-                            """() => Array.from(
-                                document.querySelectorAll("[contenteditable], input, textarea")
-                            ).map((element) => ({
-                                tag: element.tagName.toLowerCase(),
-                                dataE2e: element.getAttribute("data-e2e"),
-                                role: element.getAttribute("role"),
-                                placeholder: element.getAttribute("placeholder"),
-                                ariaLabel: element.getAttribute("aria-label"),
-                                contenteditable: element.getAttribute("contenteditable")
-                            }))"""
-                        ),
-                    )
-                    logger.debug("Editable elements after selecting %s: %s", username, editable_elements)
-
-                    input_wait_start = time.time()
-                    input_locator = page.locator(
-                        ".public-DraftEditor-content, "
-                        "div[contenteditable='true'][placeholder*='Send' i], "
-                        "div[contenteditable='true'][placeholder*='message' i], "
-                        "[contenteditable='true'][aria-label*='Send' i], "
-                        "[contenteditable='true'][aria-label*='message' i]"
-                    ).first
-                    await timed_await(
-                        f"chat input wait_for for @{normalized_username}",
-                        input_locator.wait_for(state="visible", timeout=10000),
-                    )
-                    log_duration(f"chat input wait for @{normalized_username}", input_wait_start)
+                input_locator = page.locator(
+                    ".public-DraftEditor-content, "
+                    "div[contenteditable='true'], "
+                    "[contenteditable='true']"
+                ).first
+                if await input_locator.count() > 0 and await input_locator.is_visible():
+                    self.log_status(f"Đã mở khung chat thành công với @{normalized_username}!")
                     return
+        except Exception as exc:
+            logger.warning("Could not open chat via profile for @%s: %s", normalized_username, exc)
+            self.log_status(f"Mở qua profile @{normalized_username} không thành công, thử qua danh sách tin nhắn...", "warn")
 
-            await timed_await(
-                f"conversation scroll evaluate iteration {scroll_index + 1} for @{normalized_username}",
-                conversation_list.evaluate("(element) => element.scrollBy(0, 400)"),
-            )
-            await timed_await(
-                f"conversation scroll wait iteration {scroll_index + 1} for @{normalized_username}",
-                page.wait_for_timeout(500),
-            )
-            log_duration(
-                f"conversation scroll iteration {scroll_index + 1} for @{normalized_username}",
-                scroll_iteration_start,
-            )
+        # Method 2: Fallback to Messages Page
+        self.log_status(f"Mở trang TikTok Messages...")
+        await page.goto("https://www.tiktok.com/messages", wait_until="domcontentloaded", timeout=25000)
+        await handle_screen_time_popup(page)
+        await handle_sleep_hours_popup(page)
+        await wait_for_captcha_if_present(page, self.notifier)
 
-        log_duration(f"conversation scroll/search loop for @{normalized_username}", loop_start)
-        raise ValueError(
-            "Could not find TikTok conversation item for "
-            f"@{normalized_username} using display name: {display_name}"
-        )
+        search_input = page.locator("input[placeholder*='Search' i], input[placeholder*='Tìm' i], [data-e2e='dm-search-user']").first
+        if await search_input.count() > 0 and await search_input.is_visible():
+            self.log_status(f"Nhập username @{normalized_username} vào ô tìm kiếm DM...")
+            await search_input.fill(normalized_username)
+            await page.wait_for_timeout(1500)
+
+        conversation_items = page.locator("[data-e2e='dm-new-conversation-item'], [class*='DivConversationItem'], [data-e2e='dm-conversation-item']")
+        try:
+            await conversation_items.first.wait_for(state="visible", timeout=8000)
+        except Exception:
+            pass
+
+        count = await conversation_items.count()
+        for i in range(min(count, 15)):
+            item = conversation_items.nth(i)
+            text = (await item.inner_text()).casefold()
+            if normalized_username.casefold() in text:
+                self.log_status(f"Đã chọn cuộc trò chuyện với @{normalized_username}!")
+                await item.click()
+                await page.wait_for_timeout(1000)
+                return
+
+        if count > 0:
+            self.log_status(f"Chọn cuộc trò chuyện hiện có trong danh sách...")
+            await conversation_items.first.click()
+            await page.wait_for_timeout(1000)
+            return
+
+        raise ValueError(f"Không thể mở cuộc trò chuyện cho @{normalized_username}")
 
     async def _send_message(self, page: Page, message: str) -> None:
+        self.log_status("Đang tìm ô nhập tin nhắn...")
         input_locator = page.locator(
             ".public-DraftEditor-content, "
             "div[contenteditable='true'][placeholder*='Send' i], "
             "div[contenteditable='true'][placeholder*='message' i], "
+            "div[contenteditable='true'][placeholder*='Nhắn' i], "
+            "div[contenteditable='true'], "
             "[contenteditable='true'][aria-label*='Send' i], "
-            "[contenteditable='true'][aria-label*='message' i]"
+            "[contenteditable='true'][aria-label*='message' i], "
+            "[contenteditable='true']"
         ).first
 
-        await timed_await("message input wait_for", input_locator.wait_for(state="visible", timeout=10000))
-        await timed_await("message input click", input_locator.click())
-        await timed_await("message type", page.keyboard.type(message))
-        await timed_await("Enter press", page.keyboard.press("Enter"))
+        await input_locator.wait_for(state="visible", timeout=10000)
+        await input_locator.click()
+        await page.wait_for_timeout(300)
+        self.log_status("Đang nhập đường dẫn video...")
+        await page.keyboard.type(message)
+        await page.wait_for_timeout(300)
+        self.log_status("Đang gửi tin nhắn (bấm Enter)...")
+        await page.keyboard.press("Enter")
+        await page.wait_for_timeout(1500)
 
     async def _sleep_between_messages(self) -> None:
         delay_range = self.tiktok_config.get("message_delay_seconds", [8, 18])
