@@ -10,8 +10,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const newRecipientInput = document.getElementById('newRecipientInput');
   const recipientsListContainer = document.getElementById('recipientsList');
 
-  const statusBadge = document.getElementById('statusBadge');
-  const cookieBadge = document.getElementById('cookieBadge');
+  const testUsernameInput = document.getElementById('testUsername');
+  const testVideoUrlInput = document.getElementById('testVideoUrl');
+  const btnTestSend = document.getElementById('btnTestSend');
+
+  const statusDot = document.getElementById('statusDot');
+  const statusBadgeText = document.getElementById('statusBadgeText');
+  const cookieBadgeText = document.getElementById('cookieBadgeText');
   const statusMessage = document.getElementById('statusMessage');
 
   const btnSaveConfig = document.getElementById('btnSaveConfig');
@@ -24,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentRecipients = [];
 
-  // Fetch initial config and status
+  // Tải cấu hình ban đầu
   async function loadConfig() {
     try {
       const res = await fetch('/api/config');
@@ -47,45 +52,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
       updateCookieBadge(data.cookies_valid);
     } catch (err) {
-      console.error('Failed to load config:', err);
+      console.error('Lỗi nạp cấu hình:', err);
     }
   }
 
   function updateCookieBadge(isValid) {
     if (isValid) {
-      cookieBadge.textContent = 'Cookie Hợp lệ';
-      cookieBadge.className = 'badge cookie-valid';
+      cookieBadgeText.textContent = 'Hợp lệ';
+      cookieBadgeText.className = 'valid';
     } else {
-      cookieBadge.textContent = 'Cookie Hết hạn / Chưa có';
-      cookieBadge.className = 'badge cookie-invalid';
+      cookieBadgeText.textContent = 'Hết hạn / Chưa có';
+      cookieBadgeText.className = 'invalid';
     }
   }
 
   function renderRecipients() {
     recipientsListContainer.innerHTML = '';
     if (currentRecipients.length === 0) {
-      recipientsListContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">Chưa có người nhận nào. Hãy thêm ở trên.</p>';
+      recipientsListContainer.innerHTML = '<p style="color: var(--text-secondary); font-size: 13px;">Chưa có người nhận nào. Vui lòng thêm tài khoản ở trên.</p>';
       return;
     }
 
     currentRecipients.forEach((rec, idx) => {
       const item = document.createElement('div');
-      item.className = 'recipient-item';
+      item.className = 'recipient-card';
       const displayName = rec.name || rec.username;
-      const handle = rec.username ? `@${rec.username}` : '(Chưa resolve)';
+      const handle = rec.username ? `@${rec.username}` : '(Chưa xác minh)';
+      const initial = (displayName[0] || 'T').toUpperCase();
 
       item.innerHTML = `
-        <div class="recipient-info">
+        <div class="recipient-left">
           <input type="checkbox" checked data-index="${idx}" />
-          <span><strong>${displayName}</strong> <small style="color: var(--text-muted);">${handle}</small></span>
+          <div class="avatar-circle">${initial}</div>
+          <div class="user-names">
+            <strong>${displayName}</strong>
+            <small>${handle}</small>
+          </div>
         </div>
-        <button class="remove-btn" data-index="${idx}">&times;</button>
+        <button class="btn-delete" data-index="${idx}">&times;</button>
       `;
       recipientsListContainer.appendChild(item);
     });
 
-    // Add remove handlers
-    document.querySelectorAll('.remove-btn').forEach((btn) => {
+    document.querySelectorAll('.btn-delete').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         const index = parseInt(e.target.dataset.index);
         currentRecipients.splice(index, 1);
@@ -94,14 +103,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Save Config
+  // Lưu Cấu Hình
   async function saveConfig() {
     const videoList = videoLinksInput.value
       .split('\n')
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
 
-    const checkedBoxes = document.querySelectorAll('.recipient-item input[type="checkbox"]:checked');
+    const checkedBoxes = document.querySelectorAll('.recipient-card input[type="checkbox"]:checked');
     const selectedRecipients = Array.from(checkedBoxes).map((box) => {
       const idx = parseInt(box.dataset.index);
       return currentRecipients[idx];
@@ -140,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (res.ok) {
         statusMessage.textContent = 'Đã lưu cấu hình thành công!';
       } else {
-        statusMessage.textContent = 'Lỗi lưu: ' + (data.error || 'Unknown');
+        statusMessage.textContent = 'Lỗi lưu: ' + (data.error || 'Không xác định');
       }
     } catch (err) {
       statusMessage.textContent = 'Lưu thất bại!';
@@ -148,11 +157,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Save Cookies
+  // Lưu Cookies
   btnSaveCookies.addEventListener('click', async () => {
     const rawCookies = cookieJsonInput.value.trim();
     if (!rawCookies) {
-      alert('Vui lòng dán nội dung cookies.json!');
+      alert('Vui lòng dán mã cookie JSON vào ô trước khi lưu!');
       return;
     }
 
@@ -166,16 +175,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (res.ok) {
         updateCookieBadge(data.valid);
-        statusMessage.textContent = `Đã lưu ${data.count} cookies thành công!`;
+        statusMessage.textContent = `Đã cập nhật ${data.count} cookie thành công!`;
       } else {
         alert('Lỗi lưu cookie: ' + data.error);
       }
     } catch (err) {
-      alert('Cookie không đúng định dạng JSON hợp lệ!');
+      alert('Mã cookie không đúng định dạng JSON!');
     }
   });
 
-  // Add Recipient
+  // Thêm người nhận
   btnAddRecipient.addEventListener('click', () => {
     const val = newRecipientInput.value.trim();
     if (!val) return;
@@ -186,43 +195,79 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   btnSelectAll.addEventListener('click', () => {
-    document.querySelectorAll('.recipient-item input[type="checkbox"]').forEach((box) => (box.checked = true));
+    document.querySelectorAll('.recipient-card input[type="checkbox"]').forEach((box) => (box.checked = true));
   });
 
   btnDeselectAll.addEventListener('click', () => {
-    document.querySelectorAll('.recipient-item input[type="checkbox"]').forEach((box) => (box.checked = false));
+    document.querySelectorAll('.recipient-card input[type="checkbox"]').forEach((box) => (box.checked = false));
   });
 
   btnSaveConfig.addEventListener('click', saveConfig);
 
-  // Start Sender
+  // Gửi Thử Tin Nhắn (Test Send)
+  btnTestSend.addEventListener('click', async () => {
+    const targetUser = testUsernameInput.value.trim().replace(/^@/, '');
+    const videoUrl = testVideoUrlInput.value.trim();
+
+    if (!targetUser) {
+      alert('Vui lòng nhập Username TikTok cần gửi thử!');
+      return;
+    }
+
+    try {
+      statusMessage.textContent = `Đang bắt đầu gửi tin nhắn thử tới @${targetUser}...`;
+      btnTestSend.disabled = true;
+
+      const res = await fetch('/api/test-send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: targetUser, video_url: videoUrl }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        statusMessage.textContent = data.message;
+        statusBadgeText.textContent = 'Đang chạy';
+        statusDot.parentElement.className = 'status-indicator running';
+      } else {
+        alert('Lỗi gửi thử: ' + data.error);
+        statusMessage.textContent = 'Lỗi gửi thử: ' + data.error;
+      }
+    } catch (err) {
+      alert('Lỗi kết nối khi gửi thử!');
+    } finally {
+      setTimeout(() => { btnTestSend.disabled = false; }, 3000);
+    }
+  });
+
+  // Bắt đầu gửi tự động
   btnStartSender.addEventListener('click', async () => {
     await saveConfig();
     try {
       const res = await fetch('/api/start', { method: 'POST' });
       const data = await res.json();
       if (res.ok) {
-        statusBadge.textContent = 'Đang chạy';
-        statusBadge.className = 'badge status-running';
-        statusMessage.textContent = 'Đã khởi động tiến trình gửi Streak!';
+        statusBadgeText.textContent = 'Đang chạy';
+        statusDot.parentElement.className = 'status-indicator running';
+        statusMessage.textContent = 'Đã khởi động tiến trình tự động gửi!';
         btnStartSender.disabled = true;
         btnStopSender.disabled = false;
       } else {
         alert('Không thể chạy: ' + data.error);
       }
     } catch (err) {
-      alert('Lỗi khởi động sender!');
+      alert('Lỗi khởi động!');
     }
   });
 
-  // Stop Sender
+  // Dừng tiến trình
   btnStopSender.addEventListener('click', async () => {
     try {
       const res = await fetch('/api/stop', { method: 'POST' });
       const data = await res.json();
-      statusBadge.textContent = 'Đã dừng';
-      statusBadge.className = 'badge status-idle';
-      statusMessage.textContent = 'Đã dừng gửi Streak.';
+      statusBadgeText.textContent = 'Đã dừng';
+      statusDot.parentElement.className = 'status-indicator';
+      statusMessage.textContent = 'Đã dừng tiến trình tự động gửi.';
       btnStartSender.disabled = false;
       btnStopSender.disabled = true;
     } catch (err) {
@@ -230,19 +275,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Poll status periodically
+  // Cập nhật trạng thái định kỳ
   setInterval(async () => {
     try {
       const res = await fetch('/api/status');
       const data = await res.json();
       if (data.status === 'running') {
-        statusBadge.textContent = 'Đang chạy';
-        statusBadge.className = 'badge status-running';
+        statusBadgeText.textContent = 'Đang chạy';
+        statusDot.parentElement.className = 'status-indicator running';
         btnStartSender.disabled = true;
         btnStopSender.disabled = false;
       } else if (data.status === 'finished') {
-        statusBadge.textContent = 'Hoàn thành';
-        statusBadge.className = 'badge status-idle';
+        statusBadgeText.textContent = 'Hoàn thành';
+        statusDot.parentElement.className = 'status-indicator';
         btnStartSender.disabled = false;
         btnStopSender.disabled = true;
       }

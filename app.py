@@ -172,6 +172,60 @@ def stop_sender():
     return jsonify({"message": "Đã dừng tiến trình gửi streak"})
 
 
+def run_test_send_worker(config: dict[str, Any], test_username: str, test_video: str) -> None:
+    global sender_status
+    sender_status["state"] = "running"
+    sender_status["message"] = f"Đang gửi tin nhắn thử nghiệm tới @{test_username}..."
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        test_config = dict(config)
+        test_config["recipients"] = [{"name": test_username, "username": test_username}]
+        if test_video:
+            test_config["videos"] = [test_video]
+
+        notifier = Notifier(test_config)
+        video_pool = VideoPool(test_config)
+        sender = TikTokSender(test_config, notifier, video_pool)
+
+        loop.run_until_complete(sender.send_daily_links())
+        loop.close()
+
+        sender_status["state"] = "finished"
+        sender_status["message"] = f"Đã gửi thử tin nhắn thành công tới @{test_username}!"
+    except Exception as exc:
+        logger.exception("Test send worker error")
+        sender_status["state"] = "failed"
+        sender_status["message"] = f"Lỗi gửi thử: {exc}"
+
+
+@app.route("/api/test-send", methods=["POST"])
+def test_send():
+    global active_thread, sender_status
+    if active_thread and active_thread.is_alive():
+        return jsonify({"error": "Đang có tiến trình khác đang chạy, vui lòng chờ"}), 400
+
+    payload = request.json or {}
+    target_user = payload.get("username", "").strip().lstrip("@")
+    video_url = payload.get("video_url", "").strip()
+
+    if not target_user:
+        return jsonify({"error": "Vui lòng nhập TikTok username cần gửi thử"}), 400
+
+    config = load_config()
+    if not check_cookies_valid(config.get("cookie_file", "cookies.json")):
+        return jsonify({"error": "Cookie hết hạn hoặc không hợp lệ. Vui lòng cập nhật cookie trước khi gửi thử."}), 400
+
+    active_thread = threading.Thread(
+        target=run_test_send_worker,
+        args=(config, target_user, video_url),
+        daemon=True,
+    )
+    active_thread.start()
+    return jsonify({"message": f"Đang bắt đầu gửi tin nhắn thử nghiệm tới @{target_user}..."})
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)

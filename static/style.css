@@ -1,379 +1,479 @@
 :root {
-  --bg-dark: #0f172a;
-  --card-bg: rgba(30, 41, 59, 0.7);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --accent-cyan: #06b6d4;
-  --accent-pink: #ec4899;
-  --accent-green: #10b981;
-  --accent-red: #ef4444;
-  --accent-purple: #8b5cf6;
-  --primary-gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
-  --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  --danger-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  --radius: 16px;
-  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --bg-main: #090c10;
+  --panel-bg: #131722;
+  --panel-border: #222938;
+  --panel-hover: #1c2333;
+  --text-primary: #f0f4f8;
+  --text-secondary: #8b99a8;
+  --text-muted: #5e6c7d;
+  
+  --tiktok-red: #fe2c55;
+  --tiktok-red-hover: #e02047;
+  --tiktok-cyan: #25f4ee;
+  --tiktok-green: #00b87c;
+  --tiktok-green-hover: #009966;
+  
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-family);
 }
 
 body {
-  background-color: var(--bg-dark);
-  background-image: 
-    radial-gradient(at 10% 10%, rgba(6, 182, 212, 0.15) 0px, transparent 50%),
-    radial-gradient(at 90% 90%, rgba(236, 72, 153, 0.12) 0px, transparent 50%);
-  background-attachment: fixed;
-  color: var(--text-main);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
   min-height: 100vh;
-  padding: 24px;
+  padding: 20px;
+  line-height: 1.5;
 }
 
-.app-container {
-  max-width: 1200px;
+.main-wrapper {
+  max-width: 1280px;
   margin: 0 auto;
 }
 
-/* Header */
-.header-bar {
+/* Top Navigation Header */
+.top-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 28px;
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  backdrop-filter: blur(12px);
-  padding: 20px 28px;
-  border-radius: var(--radius);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.logo-area {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.logo-icon {
-  font-size: 28px;
-  background: var(--primary-gradient);
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 20px rgba(6, 182, 212, 0.4);
-}
-
-.header-bar h1 {
-  font-size: 24px;
-  font-weight: 700;
-  background: linear-gradient(90deg, #ffffff, #94a3b8);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.subtitle {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-.status-badge-container {
-  display: flex;
-  gap: 12px;
-}
-
-.badge {
-  padding: 8px 16px;
-  border-radius: 30px;
-  font-size: 13px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  backdrop-filter: blur(8px);
-}
-
-.status-idle {
-  background: rgba(148, 163, 184, 0.15);
-  color: #cbd5e1;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-}
-
-.status-running {
-  background: rgba(16, 185, 129, 0.2);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  animation: pulse 2s infinite;
-}
-
-.cookie-valid {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.cookie-invalid {
-  background: rgba(239, 68, 68, 0.15);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
-}
-
-/* Grid Layout */
-.grid-container {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
-}
-
-.card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  backdrop-filter: blur(16px);
-  border-radius: var(--radius);
-  padding: 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
-
-.recipients-card, .action-card {
-  grid-column: span 2;
-}
-
-.card-header {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-lg);
+  padding: 16px 24px;
   margin-bottom: 20px;
 }
 
-.flex-header {
+.brand {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 14px;
 }
 
-.card-header h2 {
-  font-size: 18px;
+.tiktok-badge {
+  width: 44px;
+  height: 44px;
+  background: #000;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--tiktok-red);
+  box-shadow: -2px 2px 0px var(--tiktok-cyan);
+}
+
+.music-note {
+  font-size: 22px;
+}
+
+.brand-text h1 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.3px;
+}
+
+.version {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.system-status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--text-main);
 }
 
-/* Form Controls */
-.form-group {
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+}
+
+.status-indicator.running .dot {
+  background: var(--tiktok-green);
+  box-shadow: 0 0 10px var(--tiktok-green);
+}
+
+.status-indicator.running {
+  color: var(--tiktok-green);
+  border-color: rgba(0, 184, 124, 0.3);
+}
+
+.cookie-indicator {
+  font-size: 13px;
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--panel-border);
+  padding: 6px 14px;
+  border-radius: 20px;
+}
+
+.cookie-indicator strong.valid {
+  color: var(--tiktok-green);
+}
+
+.cookie-indicator strong.invalid {
+  color: var(--tiktok-red);
+}
+
+/* Dashboard Grid Layout */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  padding: 22px;
+}
+
+.test-send-panel {
+  border-left: 4px solid var(--tiktok-cyan);
+}
+
+.config-panel {
+  border-left: 4px solid #3b82f6;
+}
+
+.cookie-panel {
+  border-left: 4px solid #a855f7;
+}
+
+.recipients-panel, .control-panel {
+  grid-column: span 2;
+}
+
+.panel-header {
   margin-bottom: 18px;
 }
 
-.form-row {
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.panel-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.panel-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* Form Controls */
+.input-group {
+  margin-bottom: 16px;
+}
+
+.input-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
+  gap: 14px;
 }
 
 label {
   display: block;
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-muted);
-  margin-bottom: 8px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
 }
 
 input[type="text"],
 input[type="number"],
 textarea {
   width: 100%;
-  padding: 12px 16px;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  color: var(--text-main);
+  padding: 10px 14px;
+  background: #0d1117;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  color: #fff;
   font-size: 14px;
   outline: none;
-  transition: var(--transition);
+  transition: border-color 0.2s;
 }
 
 input:focus, textarea:focus {
-  border-color: var(--accent-cyan);
-  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+  border-color: var(--tiktok-cyan);
 }
 
-textarea {
-  resize: vertical;
-}
-
-.input-with-button {
-  display: flex;
-  gap: 10px;
-}
-
-.checkbox-label {
+.prefix-input {
   display: flex;
   align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  color: var(--text-main);
+  background: #0d1117;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.prefix-input .prefix {
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.prefix-input input {
+  border: none;
+  background: transparent;
+  border-radius: 0;
 }
 
 .divider {
-  border: none;
-  border-top: 1px solid var(--card-border);
-  margin: 20px 0;
+  height: 1px;
+  background: var(--panel-border);
+  margin: 18px 0;
 }
 
-/* Recipients Grid */
-.recipients-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 12px;
-  max-height: 250px;
-  overflow-y: auto;
-  padding-right: 6px;
-}
-
-.recipient-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-}
-
-.recipient-info {
+/* Custom Checkbox */
+.custom-checkbox {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
+  cursor: pointer;
 }
 
-.remove-btn {
+.custom-checkbox input {
+  display: none;
+}
+
+.checkmark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--text-secondary);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.custom-checkbox input:checked + .checkmark {
+  background: var(--tiktok-cyan);
+  border-color: var(--tiktok-cyan);
+}
+
+.custom-checkbox input:checked + .checkmark::after {
+  content: '✓';
+  color: #000;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.label-text {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+/* Recipients Management */
+.add-recipient-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.recipients-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.recipient-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0d1117;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+}
+
+.recipient-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--tiktok-red);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.user-names strong {
+  display: block;
+  font-size: 13px;
+  color: #fff;
+}
+
+.user-names small {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.btn-delete {
   background: none;
   border: none;
-  color: var(--accent-red);
+  color: var(--tiktok-red);
   cursor: pointer;
   font-size: 16px;
-  opacity: 0.7;
+  padding: 4px;
 }
 
-.remove-btn:hover {
-  opacity: 1;
+.btn-delete:hover {
+  opacity: 0.8;
 }
 
 /* Buttons */
 .btn {
-  padding: 12px 24px;
-  border-radius: 10px;
+  padding: 11px 20px;
+  border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   border: none;
-  transition: var(--transition);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  transition: all 0.2s;
+  width: 100%;
 }
 
-.btn-primary {
-  background: var(--primary-gradient);
-  color: #fff;
-  box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
-}
-
-.btn-primary:hover {
-  opacity: 0.95;
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--text-main);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.18);
-}
-
-.btn-success {
-  background: var(--success-gradient);
-  color: #fff;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-}
-
-.btn-danger {
-  background: var(--danger-gradient);
+.btn-tiktok {
+  background: var(--tiktok-red);
   color: #fff;
 }
 
-.btn-outline {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: var(--text-muted);
+.btn-tiktok:hover {
+  background: var(--tiktok-red-hover);
 }
 
-.btn-outline:hover {
-  color: var(--text-main);
-  border-color: rgba(255, 255, 255, 0.3);
+.btn-tiktok-green {
+  background: var(--tiktok-green);
+  color: #fff;
 }
 
-.btn-small {
-  padding: 6px 12px;
-  font-size: 12px;
+.btn-tiktok-green:hover {
+  background: var(--tiktok-green-hover);
 }
 
-/* Action Bar */
-.action-bar {
+.btn-tiktok-red {
+  background: #dc2626;
+  color: #fff;
+}
+
+.btn-dark {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid var(--panel-border);
+}
+
+.btn-dark:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: var(--tiktok-cyan);
+  font-size: 13px;
+  cursor: pointer;
+  margin-left: 12px;
+}
+
+.btn-text:hover {
+  text-decoration: underline;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Fixed Control Section */
+.control-panel {
+  border-top: 3px solid var(--tiktok-cyan);
+}
+
+.control-flex {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.status-message {
+.status-box {
   font-size: 14px;
 }
 
-.status-message .label {
-  color: var(--text-muted);
-  margin-right: 6px;
+.status-label {
+  color: var(--text-secondary);
+  margin-right: 8px;
 }
 
-.status-message .value {
-  color: var(--accent-cyan);
+.status-text {
+  color: var(--tiktok-cyan);
   font-weight: 600;
 }
 
-.main-buttons {
+.control-actions {
   display: flex;
   gap: 12px;
 }
 
-/* Footer */
-.footer {
-  text-align: center;
-  margin-top: 36px;
-  font-size: 13px;
-  color: var(--text-muted);
+.control-actions .btn {
+  width: auto;
 }
 
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.6; }
-  100% { opacity: 1; }
-}
-
-@media (max-width: 768px) {
-  .grid-container {
+@media (max-width: 900px) {
+  .dashboard-grid {
     grid-template-columns: 1fr;
   }
-  .recipients-card, .action-card {
+  .recipients-panel, .control-panel {
     grid-column: span 1;
   }
-  .action-bar {
+  .control-flex {
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
+    align-items: flex-start;
   }
 }
