@@ -31,30 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentRecipients = [];
 
   // ===========================================
-  // Card Entrance Animations (Intersection Observer)
-  // ===========================================
-  const animateCards = document.querySelectorAll('.animate-card');
-  const observerOptions = {
-    root: null,
-    rootMargin: '0px 0px -40px 0px',
-    threshold: 0.1,
-  };
-
-  const cardObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry, index) => {
-      if (entry.isIntersecting) {
-        // Stagger the animation delay for sequential reveal
-        const cardIndex = Array.from(animateCards).indexOf(entry.target);
-        entry.target.style.animationDelay = `${cardIndex * 0.08}s`;
-        entry.target.classList.add('visible');
-        cardObserver.unobserve(entry.target);
-      }
-    });
-  }, observerOptions);
-
-  animateCards.forEach((card) => cardObserver.observe(card));
-
-  // ===========================================
   // Toast Notification System
   // ===========================================
   function showToast(message, type = 'info') {
@@ -64,42 +40,10 @@ document.addEventListener('DOMContentLoaded', () => {
     toastContainer.appendChild(toast);
     setTimeout(() => {
       toast.style.opacity = '0';
-      toast.style.transform = 'translateX(30px) scale(0.95)';
-      toast.style.transition = 'all 0.35s ease';
-      setTimeout(() => toast.remove(), 350);
-    }, 4200);
+      toast.style.transition = 'opacity 0.2s ease';
+      setTimeout(() => toast.remove(), 200);
+    }, 4000);
   }
-
-  // ===========================================
-  // Button Ripple Effect
-  // ===========================================
-  document.querySelectorAll('.btn').forEach((btn) => {
-    btn.addEventListener('click', function (e) {
-      const ripple = document.createElement('span');
-      const rect = this.getBoundingClientRect();
-      const size = Math.max(rect.width, rect.height);
-      ripple.style.width = ripple.style.height = `${size}px`;
-      ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
-      ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
-      ripple.style.position = 'absolute';
-      ripple.style.borderRadius = '50%';
-      ripple.style.background = 'rgba(255,255,255,0.3)';
-      ripple.style.transform = 'scale(0)';
-      ripple.style.animation = 'rippleExpand 0.5s ease forwards';
-      ripple.style.pointerEvents = 'none';
-      this.appendChild(ripple);
-      setTimeout(() => ripple.remove(), 550);
-    });
-  });
-
-  // Inject ripple keyframes
-  const rippleStyle = document.createElement('style');
-  rippleStyle.textContent = `
-    @keyframes rippleExpand {
-      to { transform: scale(2.5); opacity: 0; }
-    }
-  `;
-  document.head.appendChild(rippleStyle);
 
   // ===========================================
   // Load Config
@@ -135,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
       cookieBadgeText.textContent = 'Hợp lệ';
       cookieBadgeText.className = 'valid';
     } else {
-      cookieBadgeText.textContent = 'Hết hạn / Chưa có';
+      cookieBadgeText.textContent = 'Chưa có / Hết hạn';
       cookieBadgeText.className = 'invalid';
     }
   }
@@ -147,14 +91,13 @@ document.addEventListener('DOMContentLoaded', () => {
     recipientsListContainer.innerHTML = '';
     if (currentRecipients.length === 0) {
       recipientsListContainer.innerHTML =
-        '<p style="color: var(--text-muted); font-size: 13px; padding: 12px 0;">Chưa có người nhận nào. Vui lòng thêm username ở trên.</p>';
+        '<p style="color: var(--text-muted); font-size: 12px; font-family: var(--font-mono); padding: 8px 0;">Chưa có người nhận nào. Hãy thêm Username TikTok ở trên.</p>';
       return;
     }
 
     currentRecipients.forEach((rec, idx) => {
       const item = document.createElement('div');
       item.className = 'user-item-box';
-      item.style.animationDelay = `${idx * 0.04}s`;
       const displayName = rec.name || rec.username;
       const handle = rec.username ? `@${rec.username}` : '(Chưa xác minh)';
       const initial = (displayName[0] || 'T').toUpperCase();
@@ -176,14 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.btn-remove').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         const index = parseInt(e.target.dataset.index);
-        const box = e.target.closest('.user-item-box');
-        box.style.transition = 'all 0.3s ease';
-        box.style.opacity = '0';
-        box.style.transform = 'translateX(20px) scale(0.95)';
-        setTimeout(() => {
-          currentRecipients.splice(index, 1);
-          renderRecipients();
-        }, 300);
+        currentRecipients.splice(index, 1);
+        renderRecipients();
       });
     });
   }
@@ -234,10 +171,10 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       const data = await res.json();
       if (res.ok) {
-        statusMessage.textContent = 'Đã lưu cấu hình thành công!';
+        statusMessage.textContent = 'Đã lưu cấu hình!';
         showToast('Đã lưu cấu hình thành công!', 'success');
       } else {
-        statusMessage.textContent = 'Lỗi lưu: ' + (data.error || 'Không xác định');
+        statusMessage.textContent = 'Lỗi: ' + (data.error || 'Không xác định');
         showToast('Lỗi lưu cấu hình: ' + data.error, 'error');
       }
     } catch (err) {
@@ -252,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
   btnSaveCookies.addEventListener('click', async () => {
     const rawCookies = cookieJsonInput.value.trim();
     if (!rawCookies) {
-      showToast('Vui lòng dán mã cookie JSON vào ô trước khi lưu!', 'error');
+      showToast('Vui lòng dán mã cookie JSON trước khi lưu!', 'error');
       return;
     }
 
@@ -266,13 +203,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (res.ok) {
         updateCookieBadge(data.valid);
-        statusMessage.textContent = `Đã cập nhật ${data.count} cookie thành công!`;
+        statusMessage.textContent = `Đã lưu ${data.count} cookie!`;
         showToast(`Đã cập nhật thành công ${data.count} cookie!`, 'success');
       } else {
         showToast('Lỗi lưu cookie: ' + data.error, 'error');
       }
     } catch (err) {
-      showToast('Mã cookie không đúng định dạng JSON hợp lệ!', 'error');
+      showToast('Mã cookie không đúng định dạng JSON!', 'error');
     }
   });
 
@@ -289,7 +226,6 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast(`Đã thêm @${cleanUsername} vào danh sách!`, 'success');
   });
 
-  // Allow Enter key to add recipient
   newRecipientInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -321,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      statusMessage.textContent = `Đang khởi động gửi tin nhắn thử tới @${targetUser}...`;
+      statusMessage.textContent = `Đang gửi thử tới @${targetUser}...`;
       btnTestSend.disabled = true;
 
       const res = await fetch('/api/test-send', {
@@ -333,7 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (res.ok) {
         statusMessage.textContent = data.message;
-        statusBadgeText.textContent = 'Đang chạy';
+        statusBadgeText.textContent = 'Running';
         statusPill.className = 'status-pill running';
         showToast(`Đang gửi tin nhắn thử tới @${targetUser}...`, 'success');
       } else {
@@ -356,12 +292,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch('/api/start', { method: 'POST' });
       const data = await res.json();
       if (res.ok) {
-        statusBadgeText.textContent = 'Đang chạy';
+        statusBadgeText.textContent = 'Running';
         statusPill.className = 'status-pill running';
-        statusMessage.textContent = 'Đã khởi động tiến trình tự động gửi!';
+        statusMessage.textContent = 'Đã khởi động tiến trình gửi tự động!';
         btnStartSender.disabled = true;
         btnStopSender.disabled = false;
-        showToast('Đã khởi động tiến trình tự động gửi!', 'success');
+        showToast('Đã khởi động tiến trình!', 'success');
       } else {
         showToast('Không thể chạy: ' + data.error, 'error');
       }
@@ -374,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const res = await fetch('/api/stop', { method: 'POST' });
       const data = await res.json();
-      statusBadgeText.textContent = 'Đã dừng';
+      statusBadgeText.textContent = 'Stopped';
       statusPill.className = 'status-pill';
       statusMessage.textContent = 'Đã dừng tiến trình tự động gửi.';
       btnStartSender.disabled = false;
@@ -386,19 +322,19 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ===========================================
-  // Auto Status Polling
+  // Status Polling
   // ===========================================
   setInterval(async () => {
     try {
       const res = await fetch('/api/status');
       const data = await res.json();
       if (data.status === 'running') {
-        statusBadgeText.textContent = 'Đang chạy';
+        statusBadgeText.textContent = 'Running';
         statusPill.className = 'status-pill running';
         btnStartSender.disabled = true;
         btnStopSender.disabled = false;
       } else if (data.status === 'finished') {
-        statusBadgeText.textContent = 'Hoàn thành';
+        statusBadgeText.textContent = 'Finished';
         statusPill.className = 'status-pill';
         btnStartSender.disabled = false;
         btnStopSender.disabled = true;

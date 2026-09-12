@@ -3,48 +3,47 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bảng Điều Khiển Gửi Streak TikTok</title>
-  <meta name="description" content="Công cụ tự động gửi streak TikTok hàng ngày – hỗ trợ VPS Windows & Ubuntu Linux" />
+  <title>TikTok Streak Dashboard</title>
+  <meta name="description" content="Công cụ tự động gửi streak TikTok hàng ngày – VPS Windows & Ubuntu Linux" />
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-  <!-- Toast Notification System -->
   <div id="toastContainer" class="toast-container"></div>
 
   <div class="site-container">
     
-    <!-- Top Navigation Header -->
+    <!-- Header -->
     <header class="app-header">
       <div class="brand-group">
-        <div class="brand-logo">TS</div>
+        <div class="brand-logo">STREAK v2</div>
         <div class="brand-info">
-          <h1>TikTok Streak</h1>
-          <p class="tagline">Hỗ trợ VPS Windows & Ubuntu Linux · Phát triển bởi Minh Quân</p>
+          <h1>TikTok Streak Automation</h1>
+          <p class="tagline">VPS Windows & Linux Ubuntu • Dev by Minh Quân</p>
         </div>
       </div>
       
       <div class="status-cluster">
         <div class="status-pill" id="statusPill">
           <span class="status-dot"></span>
-          <span id="statusBadgeText">Đang chờ lệnh</span>
+          <span id="statusBadgeText">Idle</span>
         </div>
         <div class="cookie-pill" id="cookieIndicator">
           <span class="pill-label">Cookie:</span>
-          <strong id="cookieBadgeText">Đang kiểm tra...</strong>
+          <strong id="cookieBadgeText">Checking...</strong>
         </div>
       </div>
     </header>
 
-    <!-- Main Content Dashboard Grid -->
+    <!-- Main Grid -->
     <main class="main-grid">
 
-      <!-- Card 1: Gửi Thử Tin Nhắn -->
-      <section class="ui-card card-accent-red animate-card">
+      <!-- Section 1: Gửi Thử Tin Nhắn -->
+      <section class="ui-card">
         <div class="card-head">
-          <div class="accent-bar warm"></div>
+          <span class="step-num">01</span>
           <div>
-            <h2>Gửi Thử Tin Nhắn</h2>
-            <p>Kiểm tra đường truyền và cookie bằng cách gửi thử ngay 1 tin nhắn đến bạn bè.</p>
+            <h2>Gửi Thử Tin Nhắn (Test Send)</h2>
+            <p>Kiểm tra kết nối và cookie bằng cách gửi thử 1 tin nhắn ngay lập tức.</p>
           </div>
         </div>
         <div class="card-body">
@@ -52,66 +51,66 @@
             <label for="testUsername">TikTok Username người nhận</label>
             <div class="input-with-prefix">
               <span class="prefix">@</span>
-              <input type="text" id="testUsername" placeholder="ten_tai_khoan_tiktok" />
+              <input type="text" id="testUsername" placeholder="username_tiktok" />
             </div>
           </div>
           <div class="form-group">
-            <label for="testVideoUrl">Link Video TikTok thử nghiệm (Để trống nếu muốn chọn ngẫu nhiên)</label>
-            <input type="text" id="testVideoUrl" placeholder="https://www.tiktok.com/@username/video/123456789" />
+            <label for="testVideoUrl">Link Video TikTok (Để trống để chọn ngẫu nhiên)</label>
+            <input type="text" id="testVideoUrl" placeholder="https://www.tiktok.com/@user/video/..." />
           </div>
           <button id="btnTestSend" class="btn btn-primary-red">
-            <span class="btn-text">Gửi Thử Tin Nhắn Ngay</span>
+            <span>Gửi Thử Tin Nhắn Ngay</span>
           </button>
         </div>
       </section>
 
-      <!-- Card 2: Cấu Hình Lịch & Delay -->
-      <section class="ui-card card-accent-blue animate-card">
+      <!-- Section 2: Cấu Hình Thời Gian -->
+      <section class="ui-card">
         <div class="card-head">
-          <div class="accent-bar cool"></div>
+          <span class="step-num">02</span>
           <div>
             <h2>Thời Gian & Delay Gửi</h2>
-            <p>Cài đặt khung giờ tự động kích hoạt mỗi ngày và khoảng trễ giữa các tin nhắn.</p>
+            <p>Khung giờ chạy tự động hàng ngày và khoảng trễ giữa các tin nhắn.</p>
           </div>
         </div>
         <div class="card-body">
           <div class="form-group">
-            <label for="scheduleTime">Giờ chạy hàng ngày (HH:MM - 24 giờ)</label>
-            <input type="text" id="scheduleTime" placeholder="00:00 (Ví dụ: 08:00 hoặc 21:30)" />
+            <label for="scheduleTime">Giờ chạy tự động hàng ngày (HH:MM)</label>
+            <input type="text" id="scheduleTime" placeholder="00:00 (Ví dụ: 08:00)" />
           </div>
           <div class="form-row-grid">
             <div class="form-group">
-              <label for="delayMin">Chờ tối thiểu (giây)</label>
+              <label for="delayMin">Chờ tối thiểu (s)</label>
               <input type="number" id="delayMin" value="8" min="1" />
             </div>
             <div class="form-group">
-              <label for="delayMax">Chờ tối đa (giây)</label>
+              <label for="delayMax">Chờ tối đa (s)</label>
               <input type="number" id="delayMax" value="18" min="1" />
             </div>
           </div>
           <div class="form-group">
-            <label for="videoLinks">Danh sách Link Video TikTok (Mỗi đường link 1 dòng)</label>
-            <textarea id="videoLinks" rows="3" placeholder="https://www.tiktok.com/@username/video/..."></textarea>
+            <label for="videoLinks">Danh sách Video TikTok (Mỗi link 1 dòng)</label>
+            <textarea id="videoLinks" rows="3" placeholder="https://www.tiktok.com/@user/video/..."></textarea>
           </div>
         </div>
       </section>
 
-      <!-- Card 3: Cookie TikTok & Telegram -->
-      <section class="ui-card card-accent-purple animate-card">
+      <!-- Section 3: Cookie & Telegram -->
+      <section class="ui-card">
         <div class="card-head">
-          <div class="accent-bar sunset"></div>
+          <span class="step-num">03</span>
           <div>
-            <h2>Quản Lý Cookie & Telegram Bot</h2>
-            <p>Cập nhật mã Cookie để duy trì phiên đăng nhập và nhận thông báo qua Telegram.</p>
+            <h2>Cookie & Telegram Bot</h2>
+            <p>Cập nhật Cookie TikTok và cấu hình thông báo qua Telegram Bot.</p>
           </div>
         </div>
         <div class="card-body">
           <div class="form-group">
             <label for="cookieJsonInput">Mã Cookie JSON (Export từ EditThisCookie)</label>
-            <textarea id="cookieJsonInput" rows="3" placeholder='Dán đoạn mã [ { "name": "sessionid", ... } ] vào đây'></textarea>
+            <textarea id="cookieJsonInput" rows="3" placeholder='[ { "name": "sessionid", ... } ]'></textarea>
           </div>
           <button id="btnSaveCookies" class="btn btn-secondary">
-            <span>Cập Nhật & Kiểm Tra Cookie</span>
+            <span>Lưu & Kiểm Tra Cookie</span>
           </button>
 
           <div class="ui-divider"></div>
@@ -120,30 +119,30 @@
             <label class="switch-control">
               <input type="checkbox" id="telegramEnabled" />
               <span class="switch-slider"></span>
-              <span class="switch-text">Bật thông báo tự động qua Telegram Bot</span>
+              <span class="switch-text">Bật thông báo Telegram Bot</span>
             </label>
           </div>
           <div class="form-row-grid">
             <div class="form-group">
-              <label for="telegramBotToken">Token Bot Telegram</label>
+              <label for="telegramBotToken">Bot Token</label>
               <input type="text" id="telegramBotToken" placeholder="123456789:AAFg..." />
             </div>
             <div class="form-group">
-              <label for="telegramChatId">Chat ID Người Nhận</label>
+              <label for="telegramChatId">Chat ID</label>
               <input type="text" id="telegramChatId" placeholder="123456789" />
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Card 4: Danh Sách Bạn Bè -->
-      <section class="ui-card full-width-card animate-card">
+      <!-- Section 4: Danh Sách Bạn Bè -->
+      <section class="ui-card full-width-card">
         <div class="card-head flex-space-between">
           <div class="head-title-group">
-            <div class="accent-bar green"></div>
+            <span class="step-num">04</span>
             <div>
               <h2>Danh Sách Bạn Bè Nhận Streak</h2>
-              <p>Chọn các tài khoản bạn bè sẽ nhận link video gửi streak tự động hàng ngày.</p>
+              <p>Danh sách các tài khoản TikTok sẽ nhận video streak tự động.</p>
             </div>
           </div>
           <div class="quick-actions">
@@ -153,20 +152,20 @@
         </div>
         <div class="card-body">
           <div class="add-user-field">
-            <input type="text" id="newRecipientInput" placeholder="Nhập Username TikTok (Ví dụ: @ban_be_123)" />
-            <button id="btnAddRecipient" class="btn btn-secondary">Thêm Vào Danh Sách</button>
+            <input type="text" id="newRecipientInput" placeholder="Nhập Username TikTok (Ví dụ: ban_be_123)" />
+            <button id="btnAddRecipient" class="btn btn-secondary" style="width: auto;">Thêm Username</button>
           </div>
           <div id="recipientsList" class="user-cards-grid">
-            <!-- Danh sách người nhận -->
+            <!-- Render recipients -->
           </div>
         </div>
       </section>
 
-      <!-- Card 5: Bottom Control Action Bar -->
-      <section class="ui-card full-width-card control-card animate-card">
+      <!-- Section 5: Control Action Bar -->
+      <section class="ui-card full-width-card">
         <div class="control-row">
           <div class="live-status-display">
-            <span class="status-title-text">Trạng Thái Hiện Tại:</span>
+            <span class="status-title-text">Trạng Thái:</span>
             <span id="statusMessage" class="status-live-text">Sẵn sàng hoạt động</span>
           </div>
           <div class="button-action-group">
@@ -179,9 +178,8 @@
 
     </main>
 
-    <!-- Footer -->
     <footer class="app-footer">
-      <p>TikTok Streak &copy; 2026 Minh Quân. Hỗ trợ chạy mượt mà 24/7 trên VPS Windows & Ubuntu Linux.</p>
+      <p>TikTok Streak Automation &copy; 2026 Minh Quân • Chạy mượt mà 24/7 trên VPS Windows & Ubuntu Linux</p>
     </footer>
   </div>
 
