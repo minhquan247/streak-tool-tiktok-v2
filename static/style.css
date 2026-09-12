@@ -576,6 +576,37 @@ textarea {
   width: auto;
 }
 
+/* Log Console Box */
+.log-console-box {
+  background: #040405;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-input);
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  max-height: 200px;
+  min-height: 120px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.log-line {
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.log-line .log-time {
+  color: var(--text-muted);
+  margin-right: 8px;
+}
+
+.log-line.info { color: #d4d4d8; }
+.log-line.success { color: var(--accent-green); }
+.log-line.error { color: var(--accent-red); }
+.log-line.warn { color: #f59e0b; }
+
 /* Footer */
 .app-footer {
   text-align: center;

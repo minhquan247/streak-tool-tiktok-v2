@@ -155,6 +155,27 @@ def save_cookies():
         return jsonify({"error": str(exc)}), 500
 
 
+from datetime import datetime
+
+sender_status = {
+    "state": "idle",
+    "message": "Sẵn sàng",
+    "last_run": None,
+    "logs": [],
+}
+active_thread: threading.Thread | None = None
+
+
+def add_log(text: str, level: str = "info") -> None:
+    timestamp = datetime.now().strftime("%H:%M:%S")
+    sender_status["message"] = text
+    if "logs" not in sender_status or not isinstance(sender_status["logs"], list):
+        sender_status["logs"] = []
+    sender_status["logs"].append({"time": timestamp, "text": text, "level": level})
+    if len(sender_status["logs"]) > 100:
+        sender_status["logs"] = sender_status["logs"][-100:]
+
+
 @app.route("/api/status", methods=["GET"])
 def get_status():
     config = load_config()
@@ -165,31 +186,40 @@ def get_status():
             "message": sender_status["message"],
             "last_run": sender_status["last_run"],
             "cookies_valid": cookies_valid,
+            "logs": sender_status.get("logs", []),
         }
     )
+
+
+@app.route("/api/clear-logs", methods=["POST"])
+def clear_logs():
+    sender_status["logs"] = []
+    add_log("Đã xóa lịch sử nhật ký.")
+    return jsonify({"message": "Đã xóa log"})
 
 
 def run_sender_worker(config: dict[str, Any]) -> None:
     global sender_status
     sender_status["state"] = "running"
-    sender_status["message"] = "Đang gửi video streak TikTok đến danh sách bạn bè..."
+    sender_status["logs"] = []
+    add_log("Bắt đầu tiến trình tự động gửi streak...")
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
         notifier = Notifier(config)
         video_pool = VideoPool(config)
-        sender = TikTokSender(config, notifier, video_pool)
+        sender = TikTokSender(config, notifier, video_pool, status_cb=add_log)
 
         loop.run_until_complete(sender.send_daily_links())
         loop.close()
 
         sender_status["state"] = "finished"
-        sender_status["message"] = "Đã gửi thành công video streak đến tất cả người nhận!"
+        sender_status["last_run"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     except Exception as exc:
         logger.exception("Worker error during send")
         sender_status["state"] = "failed"
-        sender_status["message"] = f"Lỗi tiến trình: {exc}"
+        add_log(f"Lỗi tiến trình: {exc}", "error")
 
 
 @app.route("/api/start", methods=["POST"])
@@ -214,14 +244,15 @@ def start_sender():
 def stop_sender():
     global sender_status
     sender_status["state"] = "stopped"
-    sender_status["message"] = "Đã dừng tiến trình theo yêu cầu của người dùng"
+    add_log("Đã dừng tiến trình theo yêu cầu của người dùng", "warn")
     return jsonify({"message": "Đã dừng tiến trình gửi streak"})
 
 
 def run_test_send_worker(config: dict[str, Any], test_username: str, test_video: str) -> None:
     global sender_status
     sender_status["state"] = "running"
-    sender_status["message"] = f"Đang gửi tin nhắn thử nghiệm tới @{test_username}..."
+    sender_status["logs"] = []
+    add_log(f"Bắt đầu gửi tin nhắn thử nghiệm tới @{test_username}...")
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -233,17 +264,17 @@ def run_test_send_worker(config: dict[str, Any], test_username: str, test_video:
 
         notifier = Notifier(test_config)
         video_pool = VideoPool(test_config)
-        sender = TikTokSender(test_config, notifier, video_pool)
+        sender = TikTokSender(test_config, notifier, video_pool, status_cb=add_log)
 
         loop.run_until_complete(sender.send_daily_links())
         loop.close()
 
         sender_status["state"] = "finished"
-        sender_status["message"] = f"Đã gửi thử tin nhắn thành công tới @{test_username}!"
+        sender_status["last_run"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     except Exception as exc:
         logger.exception("Test send worker error")
         sender_status["state"] = "failed"
-        sender_status["message"] = f"Lỗi gửi thử: {exc}"
+        add_log(f"Lỗi gửi thử: {exc}", "error")
 
 
 @app.route("/api/test-send", methods=["POST"])

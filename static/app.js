@@ -28,7 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnStopSender = document.getElementById('btnStopSender');
   const toastContainer = document.getElementById('toastContainer');
 
+  const logConsole = document.getElementById('logConsole');
+  const btnClearLogs = document.getElementById('btnClearLogs');
+
   let currentRecipients = [];
+  let currentProcessState = 'idle';
 
   // ===========================================
   // Toast Notification System
@@ -43,6 +47,44 @@ document.addEventListener('DOMContentLoaded', () => {
       toast.style.transition = 'opacity 0.2s ease';
       setTimeout(() => toast.remove(), 200);
     }, 4000);
+  }
+
+  // ===========================================
+  // Live Log Console Rendering
+  // ===========================================
+  function escapeHtml(str) {
+    return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function renderLogs(logs) {
+    if (!logConsole || !Array.isArray(logs)) return;
+    if (logs.length === 0) {
+      logConsole.innerHTML = '<div class="log-line info"><span class="log-time">[System]</span> Chưa có nhật ký tiến trình.</div>';
+      return;
+    }
+
+    const isAtBottom = logConsole.scrollHeight - logConsole.clientHeight <= logConsole.scrollTop + 40;
+
+    logConsole.innerHTML = logs.map(log => {
+      const lvl = log.level || 'info';
+      const timeStr = log.time ? `[${log.time}]` : '[Log]';
+      return `<div class="log-line ${lvl}"><span class="log-time">${timeStr}</span> ${escapeHtml(log.text)}</div>`;
+    }).join('');
+
+    if (isAtBottom || currentProcessState === 'running') {
+      logConsole.scrollTop = logConsole.scrollHeight;
+    }
+  }
+
+  if (btnClearLogs) {
+    btnClearLogs.addEventListener('click', async () => {
+      try {
+        await fetch('/api/clear-logs', { method: 'POST' });
+        if (logConsole) {
+          logConsole.innerHTML = '<div class="log-line info"><span class="log-time">[System]</span> Đã xóa lịch sử nhật ký.</div>';
+        }
+      } catch (e) {}
+    });
   }
 
   // ===========================================
@@ -322,12 +364,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ===========================================
-  // Status Polling
+  // Real-time Status & Log Polling (Every 2 seconds)
   // ===========================================
   setInterval(async () => {
     try {
       const res = await fetch('/api/status');
       const data = await res.json();
+      currentProcessState = data.status;
+
       if (data.status === 'running') {
         statusBadgeText.textContent = 'Running';
         statusPill.className = 'status-pill running';
@@ -338,14 +382,24 @@ document.addEventListener('DOMContentLoaded', () => {
         statusPill.className = 'status-pill';
         btnStartSender.disabled = false;
         btnStopSender.disabled = true;
+      } else if (data.status === 'failed') {
+        statusBadgeText.textContent = 'Failed';
+        statusPill.className = 'status-pill';
+        btnStartSender.disabled = false;
+        btnStopSender.disabled = true;
       }
+
       if (data.message) {
         statusMessage.textContent = data.message;
+      }
+
+      if (data.logs) {
+        renderLogs(data.logs);
       }
     } catch (e) {
       // quiet
     }
-  }, 5000);
+  }, 2000);
 
   loadConfig();
 });

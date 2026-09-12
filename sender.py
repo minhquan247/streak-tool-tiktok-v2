@@ -125,50 +125,98 @@ async def timed_await(step: str, awaitable: Any) -> Any:
 
 
 class TikTokSender:
-    def __init__(self, config: dict[str, Any], notifier: Notifier, video_pool: VideoPool) -> None:
+    def __init__(
+        self,
+        config: dict[str, Any],
+        notifier: Notifier,
+        video_pool: VideoPool,
+        status_cb: Any = None,
+    ) -> None:
         self.config = config
         self.notifier = notifier
         self.video_pool = video_pool
         self.tiktok_config = config.get("tiktok", {})
         self.recipients = config.get("recipients", [])
+        self.status_cb = status_cb
+
+    def log_status(self, message: str, level: str = "info") -> None:
+        logger.info(message)
+        if self.status_cb:
+            try:
+                self.status_cb(message, level)
+            except Exception:
+                pass
 
     async def send_daily_links(self) -> None:
         if not self.recipients:
-            logger.warning("No recipients configured.")
+            self.log_status("Chưa có tài khoản nhận nào trong danh sách.", "warn")
             return
 
         cookie_file = self.config.get("cookie_file", "cookies.json")
         if not check_cookies_valid(cookie_file):
-            logger.error("Cookies expired or invalid. Please re-export from EditThisCookie.")
+            self.log_status("Cookie hết hạn hoặc không hợp lệ. Vui lòng cập nhật mã Cookie mới.", "error")
             show_cookie_warning_if_ui_running()
             return
+
+        self.log_status(f"Bắt đầu tiến trình gửi streak đến {len(self.recipients)} người nhận...")
 
         async with async_playwright() as playwright:
             key = get_user_data_dir_key()
             user_data_dir = Path(
                 self.tiktok_config.get(key) or get_default_user_data_dir()
             ).expanduser()
-            context = await playwright.chromium.launch_persistent_context(
-                user_data_dir=str(user_data_dir),
-                executable_path=get_chrome_path(),
-                headless=False,
-                args=[
+
+            is_headless = self.tiktok_config.get("headless", True)
+            chrome_path = get_chrome_path()
+
+            launch_kwargs: dict[str, Any] = {
+                "user_data_dir": str(user_data_dir),
+                "headless": is_headless,
+                "args": [
                     "--restore-last-session",
                     "--disable-session-crashed-bubble",
                     "--hide-crash-restore-bubble",
+                    "--no-sandbox",
+                    "--disable-setuid-sandbox",
+                    "--disable-dev-shm-usage",
                 ],
-                ignore_default_args=["--enable-automation", "--no-first-run"],
-            )
+                "ignore_default_args": ["--enable-automation", "--no-first-run"],
+            }
+            if Path(chrome_path).exists():
+                launch_kwargs["executable_path"] = chrome_path
+
+            self.log_status(f"Đang mở trình duyệt (Headless={is_headless})...")
+            context = await playwright.chromium.launch_persistent_context(**launch_kwargs)
             context.set_default_timeout(int(self.tiktok_config.get("navigation_timeout_ms", 60000)))
 
             try:
                 page = context.pages[0] if context.pages else await context.new_page()
+                self.log_status("Đang nạp Cookie TikTok...")
                 cookies_loaded = await self._load_cookies(context)
+
+                self.log_status("Đang kiểm tra trang đăng nhập TikTok...")
                 await self._ensure_logged_in(page, cookies_loaded=cookies_loaded)
 
-                for recipient in self.recipients:
-                    await self._send_to_recipient(context, recipient)
-                    await self._sleep_between_messages()
+                success_count = 0
+                fail_count = 0
+
+                for idx, recipient in enumerate(self.recipients, 1):
+                    username = recipient.get("username") or recipient.get("name")
+                    self.log_status(f"[{idx}/{len(self.recipients)}] Đang xử lý gửi tin nhắn tới @{username}...")
+                    try:
+                        await self._send_to_recipient(context, recipient)
+                        success_count += 1
+                        self.log_status(f"✓ Đã gửi thành công tới @{username}!", "success")
+                    except Exception as exc:
+                        fail_count += 1
+                        logger.exception("Lỗi khi gửi tới @%s", username)
+                        self.log_status(f"✗ Thất bại gửi tới @{username}: {exc}", "error")
+
+                    if idx < len(self.recipients):
+                        await self._sleep_between_messages()
+
+                total_msg = f"Hoàn tất gửi streak! Thành công: {success_count}/{len(self.recipients)}, Thất bại: {fail_count}."
+                self.log_status(total_msg, "success" if fail_count == 0 else "warn")
             finally:
                 await context.close()
 
