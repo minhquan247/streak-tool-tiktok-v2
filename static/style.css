@@ -1,22 +1,31 @@
 :root {
-  --bg-main: #090c10;
-  --panel-bg: #131722;
-  --panel-border: #222938;
-  --panel-hover: #1c2333;
-  --text-primary: #f0f4f8;
-  --text-secondary: #8b99a8;
-  --text-muted: #5e6c7d;
+  --bg-app: #f8fafc;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --card-border-hover: #cbd5e1;
+  --text-main: #0f172a;
+  --text-muted: #475569;
+  --text-light: #64748b;
   
-  --tiktok-red: #fe2c55;
-  --tiktok-red-hover: #e02047;
-  --tiktok-cyan: #25f4ee;
-  --tiktok-green: #00b87c;
-  --tiktok-green-hover: #009966;
+  --google-blue: #1a73e8;
+  --google-purple: #8e24aa;
+  --google-pink: #d81b60;
+  --gemini-gradient: linear-gradient(135deg, #1a73e8 0%, #8e24aa 50%, #d81b60 100%);
+  --gemini-gradient-hover: linear-gradient(135deg, #1557b0 0%, #7b1fa2 50%, #c2185b 100%);
   
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --success-color: #059669;
+  --success-bg: #ecfdf5;
+  --success-border: #a7f3d0;
+  
+  --danger-color: #dc2626;
+  --danger-bg: #fef2f2;
+  --danger-border: #fecaca;
+  
+  --radius-card: 20px;
+  --radius-btn: 50px;
+  --radius-input: 12px;
+  --font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Outfit', system-ui, -apple-system, sans-serif;
 }
 
 * {
@@ -27,174 +36,203 @@
 }
 
 body {
-  background-color: var(--bg-main);
-  color: var(--text-primary);
+  background-color: var(--bg-app);
+  color: var(--text-main);
   min-height: 100vh;
-  padding: 20px;
-  line-height: 1.5;
+  padding: 24px 16px;
+  position: relative;
+  overflow-x: hidden;
 }
 
-.main-wrapper {
-  max-width: 1280px;
+/* Ambient Top Glow inspired by Google Gemini */
+.gemini-bg-glow {
+  position: absolute;
+  top: -150px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1000px;
+  height: 450px;
+  background: radial-gradient(circle, rgba(26, 115, 232, 0.08) 0%, rgba(142, 36, 170, 0.06) 40%, rgba(216, 27, 96, 0.04) 70%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app-shell {
+  max-width: 1200px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
-/* Top Navigation Header */
-.top-nav {
+/* Header Navbar */
+.gemini-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius-lg);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-card);
   padding: 16px 24px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
 }
 
-.brand {
+.brand-cluster {
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-.tiktok-badge {
+.gemini-sparkle-icon {
   width: 44px;
   height: 44px;
-  background: #000;
-  border-radius: 12px;
+  background: #f1f5f9;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--tiktok-red);
-  box-shadow: -2px 2px 0px var(--tiktok-cyan);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.8), 0 4px 12px rgba(26, 115, 232, 0.1);
 }
 
-.music-note {
-  font-size: 22px;
-}
-
-.brand-text h1 {
+.app-title {
+  font-family: var(--font-heading);
   font-size: 20px;
   font-weight: 700;
-  color: #fff;
-  letter-spacing: -0.3px;
+  background: var(--gemini-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.version {
+.app-subtitle {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
-.system-status {
+.badge-cluster {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
-.status-indicator {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--panel-border);
+.gemini-badge {
   padding: 6px 14px;
-  border-radius: 20px;
+  border-radius: 30px;
   font-size: 13px;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f5f9;
+  color: var(--text-muted);
+  border: 1px solid #e2e8f0;
 }
 
-.dot {
+.pulse-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--text-secondary);
+  background: var(--text-light);
 }
 
-.status-indicator.running .dot {
-  background: var(--tiktok-green);
-  box-shadow: 0 0 10px var(--tiktok-green);
+.status-badge.running {
+  background: var(--success-bg);
+  color: var(--success-color);
+  border-color: var(--success-border);
 }
 
-.status-indicator.running {
-  color: var(--tiktok-green);
-  border-color: rgba(0, 184, 124, 0.3);
+.status-badge.running .pulse-dot {
+  background: var(--success-color);
+  box-shadow: 0 0 8px var(--success-color);
+  animation: pulse-gemini 1.8s infinite;
 }
 
-.cookie-indicator {
-  font-size: 13px;
-  color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--panel-border);
-  padding: 6px 14px;
-  border-radius: 20px;
+.cookie-badge strong.valid {
+  color: var(--success-color);
 }
 
-.cookie-indicator strong.valid {
-  color: var(--tiktok-green);
+.cookie-badge strong.invalid {
+  color: var(--danger-color);
 }
 
-.cookie-indicator strong.invalid {
-  color: var(--tiktok-red);
-}
-
-/* Dashboard Grid Layout */
-.dashboard-grid {
+/* Gemini Grid */
+.gemini-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
+  gap: 24px;
 }
 
-.panel {
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius-md);
-  padding: 22px;
+.gemini-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-card);
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
+  transition: all 0.25s ease;
 }
 
-.test-send-panel {
-  border-left: 4px solid var(--tiktok-cyan);
+.gemini-card:hover {
+  border-color: var(--card-border-hover);
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
 }
 
-.config-panel {
-  border-left: 4px solid #3b82f6;
-}
-
-.cookie-panel {
-  border-left: 4px solid #a855f7;
-}
-
-.recipients-panel, .control-panel {
+.recipients-card, .action-bar-card {
   grid-column: span 2;
 }
 
-.panel-header {
-  margin-bottom: 18px;
-}
-
-.flex-between {
+.card-title-row {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
 }
 
-.panel-header h2 {
-  font-size: 16px;
+.flex-between-row {
+  justify-content: space-between;
+  width: 100%;
+}
+
+.title-with-icon {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.blue-glow { background: #eff6ff; color: #1d4ed8; }
+.purple-glow { background: #faf5ff; color: #7e22ce; }
+.pink-glow { background: #fdf2f8; color: #be185d; }
+.cyan-glow { background: #ecfeff; color: #0891b2; }
+
+.card-title-row h2 {
+  font-family: var(--font-heading);
+  font-size: 17px;
   font-weight: 700;
-  color: #fff;
-  margin-bottom: 4px;
+  color: var(--text-main);
+  margin-bottom: 2px;
 }
 
-.panel-desc {
+.card-title-row p {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 /* Form Controls */
-.input-group {
+.form-field {
   margin-bottom: 16px;
 }
 
-.input-row {
+.form-row-2 {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 14px;
@@ -203,8 +241,8 @@ body {
 label {
   display: block;
   font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
+  font-weight: 600;
+  color: var(--text-main);
   margin-bottom: 6px;
 }
 
@@ -212,161 +250,178 @@ input[type="text"],
 input[type="number"],
 textarea {
   width: 100%;
-  padding: 10px 14px;
-  background: #0d1117;
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius-sm);
-  color: #fff;
+  padding: 11px 16px;
+  background: #f8fafc;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-input);
+  color: var(--text-main);
   font-size: 14px;
   outline: none;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 input:focus, textarea:focus {
-  border-color: var(--tiktok-cyan);
+  background: #ffffff;
+  border-color: var(--google-blue);
+  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.12);
 }
 
-.prefix-input {
+.input-prefix-wrapper {
   display: flex;
   align-items: center;
-  background: #0d1117;
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius-sm);
+  background: #f8fafc;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-input);
   overflow: hidden;
 }
 
-.prefix-input .prefix {
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text-secondary);
-  font-weight: 600;
+.input-prefix {
+  padding: 11px 14px;
+  background: #e2e8f0;
+  color: var(--text-muted);
+  font-weight: 700;
 }
 
-.prefix-input input {
+.input-prefix-wrapper input {
   border: none;
   background: transparent;
   border-radius: 0;
 }
 
-.divider {
+.soft-divider {
   height: 1px;
-  background: var(--panel-border);
-  margin: 18px 0;
+  background: var(--card-border);
+  margin: 20px 0;
 }
 
-/* Custom Checkbox */
-.custom-checkbox {
+/* Modern Toggle Switch */
+.toggle-switch-label {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   cursor: pointer;
 }
 
-.custom-checkbox input {
+.toggle-switch-label input {
   display: none;
 }
 
-.checkmark {
+.toggle-slider {
+  width: 44px;
+  height: 24px;
+  background: #cbd5e1;
+  border-radius: 20px;
+  position: relative;
+  transition: background 0.25s ease;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
   width: 18px;
   height: 18px;
-  border: 2px solid var(--text-secondary);
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform 0.25s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
-.custom-checkbox input:checked + .checkmark {
-  background: var(--tiktok-cyan);
-  border-color: var(--tiktok-cyan);
+.toggle-switch-label input:checked + .toggle-slider {
+  background: var(--google-blue);
 }
 
-.custom-checkbox input:checked + .checkmark::after {
-  content: '✓';
-  color: #000;
-  font-weight: bold;
-  font-size: 12px;
+.toggle-switch-label input:checked + .toggle-slider::before {
+  transform: translateX(20px);
 }
 
-.label-text {
+.toggle-text {
   font-size: 13px;
-  color: var(--text-primary);
+  font-weight: 600;
+  color: var(--text-main);
 }
 
-/* Recipients Management */
-.add-recipient-bar {
+/* Recipients List Card */
+.add-user-bar {
   display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
-.recipients-grid {
+.recipients-grid-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
   max-height: 240px;
   overflow-y: auto;
   padding-right: 4px;
 }
 
-.recipient-card {
+.user-card-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #0d1117;
-  border: 1px solid var(--panel-border);
-  border-radius: var(--radius-sm);
+  background: #f8fafc;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-input);
   padding: 10px 14px;
+  transition: all 0.2s ease;
 }
 
-.recipient-left {
+.user-card-item:hover {
+  border-color: var(--google-blue);
+  background: #ffffff;
+}
+
+.user-card-left {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.avatar-circle {
-  width: 32px;
-  height: 32px;
+.user-avatar-badge {
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: var(--tiktok-red);
-  color: #fff;
+  background: var(--gemini-gradient);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: bold;
+  font-weight: 700;
   font-size: 13px;
 }
 
-.user-names strong {
+.user-meta strong {
   display: block;
   font-size: 13px;
-  color: #fff;
+  color: var(--text-main);
 }
 
-.user-names small {
-  font-size: 11px;
-  color: var(--text-secondary);
+.user-meta small {
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
-.btn-delete {
+.btn-remove-user {
   background: none;
   border: none;
-  color: var(--tiktok-red);
+  color: var(--danger-color);
   cursor: pointer;
-  font-size: 16px;
-  padding: 4px;
+  font-size: 18px;
+  padding: 4px 8px;
+  border-radius: 6px;
 }
 
-.btn-delete:hover {
-  opacity: 0.8;
+.btn-remove-user:hover {
+  background: var(--danger-bg);
 }
 
-/* Buttons */
-.btn {
-  padding: 11px 20px;
-  border-radius: var(--radius-sm);
+/* Gemini Pill Buttons */
+.gemini-btn {
+  padding: 12px 24px;
+  border-radius: var(--radius-btn);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -375,113 +430,130 @@ input:focus, textarea:focus {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+}
+
+.btn-gemini-gradient {
+  background: var(--gemini-gradient);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(26, 115, 232, 0.3);
   width: 100%;
 }
 
-.btn-tiktok {
-  background: var(--tiktok-red);
-  color: #fff;
+.btn-gemini-gradient:hover {
+  background: var(--gemini-gradient-hover);
+  transform: translateY(-1px);
 }
 
-.btn-tiktok:hover {
-  background: var(--tiktok-red-hover);
+.btn-primary-gemini {
+  background: var(--google-blue);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(26, 115, 232, 0.3);
 }
 
-.btn-tiktok-green {
-  background: var(--tiktok-green);
-  color: #fff;
+.btn-primary-gemini:hover {
+  background: #1557b0;
+  transform: translateY(-1px);
 }
 
-.btn-tiktok-green:hover {
-  background: var(--tiktok-green-hover);
+.btn-danger-gemini {
+  background: var(--danger-color);
+  color: #ffffff;
 }
 
-.btn-tiktok-red {
-  background: #dc2626;
-  color: #fff;
+.btn-danger-gemini:hover {
+  background: #b91c1c;
 }
 
-.btn-dark {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-  border: 1px solid var(--panel-border);
+.btn-secondary-light {
+  background: #f1f5f9;
+  color: var(--text-main);
+  border: 1px solid var(--card-border);
 }
 
-.btn-dark:hover {
-  background: rgba(255, 255, 255, 0.15);
+.btn-secondary-light:hover {
+  background: #e2e8f0;
 }
 
-.btn-text {
+.text-btn {
   background: none;
   border: none;
-  color: var(--tiktok-cyan);
+  color: var(--google-blue);
   font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
-  margin-left: 12px;
+  margin-left: 10px;
 }
 
-.btn-text:hover {
+.text-btn:hover {
   text-decoration: underline;
 }
 
-.btn:disabled {
+.gemini-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  transform: none !important;
 }
 
-/* Fixed Control Section */
-.control-panel {
-  border-top: 3px solid var(--tiktok-cyan);
+/* Action Bar Card */
+.action-bar-card {
+  border-top: 3px solid var(--google-blue);
 }
 
-.control-flex {
+.action-bar-inner {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.status-box {
+.live-status-info {
   font-size: 14px;
 }
 
-.status-label {
-  color: var(--text-secondary);
+.status-title {
+  color: var(--text-muted);
   margin-right: 8px;
 }
 
-.status-text {
-  color: var(--tiktok-cyan);
-  font-weight: 600;
+.status-highlight {
+  color: var(--google-blue);
+  font-weight: 700;
 }
 
-.control-actions {
+.action-btn-group {
   display: flex;
   gap: 12px;
 }
 
-.control-actions .btn {
-  width: auto;
+/* Footer */
+.gemini-footer {
+  text-align: center;
+  margin-top: 32px;
+  padding: 16px 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+@keyframes pulse-gemini {
+  0% { opacity: 1; }
+  50% { opacity: 0.4; }
+  100% { opacity: 1; }
 }
 
 @media (max-width: 900px) {
-  .dashboard-grid {
+  .gemini-grid {
     grid-template-columns: 1fr;
   }
-  .recipients-panel, .control-panel {
+  .recipients-card, .action-bar-card {
     grid-column: span 1;
   }
-  .control-flex {
+  .action-bar-inner {
     flex-direction: column;
-    gap: 14px;
+    gap: 16px;
     align-items: flex-start;
   }
-}
-
-.footer-bar {
-  text-align: center;
-  margin-top: 24px;
-  padding: 16px 0;
-  font-size: 13px;
-  color: var(--text-secondary);
+  .action-btn-group {
+    width: 100%;
+    flex-direction: column;
+  }
 }

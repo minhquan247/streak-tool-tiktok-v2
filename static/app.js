@@ -69,32 +69,32 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderRecipients() {
     recipientsListContainer.innerHTML = '';
     if (currentRecipients.length === 0) {
-      recipientsListContainer.innerHTML = '<p style="color: var(--text-secondary); font-size: 13px;">Chưa có người nhận nào. Vui lòng thêm tài khoản ở trên.</p>';
+      recipientsListContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 13px; padding: 12px 0;">Chưa có người nhận nào. Vui lòng thêm tài khoản ở trên.</p>';
       return;
     }
 
     currentRecipients.forEach((rec, idx) => {
       const item = document.createElement('div');
-      item.className = 'recipient-card';
+      item.className = 'user-card-item';
       const displayName = rec.name || rec.username;
       const handle = rec.username ? `@${rec.username}` : '(Chưa xác minh)';
       const initial = (displayName[0] || 'T').toUpperCase();
 
       item.innerHTML = `
-        <div class="recipient-left">
+        <div class="user-card-left">
           <input type="checkbox" checked data-index="${idx}" />
-          <div class="avatar-circle">${initial}</div>
-          <div class="user-names">
+          <div class="user-avatar-badge">${initial}</div>
+          <div class="user-meta">
             <strong>${displayName}</strong>
             <small>${handle}</small>
           </div>
         </div>
-        <button class="btn-delete" data-index="${idx}">&times;</button>
+        <button class="btn-remove-user" data-index="${idx}">&times;</button>
       `;
       recipientsListContainer.appendChild(item);
     });
 
-    document.querySelectorAll('.btn-delete').forEach((btn) => {
+    document.querySelectorAll('.btn-remove-user').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         const index = parseInt(e.target.dataset.index);
         currentRecipients.splice(index, 1);
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
 
-    const checkedBoxes = document.querySelectorAll('.recipient-card input[type="checkbox"]:checked');
+    const checkedBoxes = document.querySelectorAll('.user-card-item input[type="checkbox"]:checked');
     const selectedRecipients = Array.from(checkedBoxes).map((box) => {
       const idx = parseInt(box.dataset.index);
       return currentRecipients[idx];
@@ -195,11 +195,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   btnSelectAll.addEventListener('click', () => {
-    document.querySelectorAll('.recipient-card input[type="checkbox"]').forEach((box) => (box.checked = true));
+    document.querySelectorAll('.user-card-item input[type="checkbox"]').forEach((box) => (box.checked = true));
   });
 
   btnDeselectAll.addEventListener('click', () => {
-    document.querySelectorAll('.recipient-card input[type="checkbox"]').forEach((box) => (box.checked = false));
+    document.querySelectorAll('.user-card-item input[type="checkbox"]').forEach((box) => (box.checked = false));
   });
 
   btnSaveConfig.addEventListener('click', saveConfig);
@@ -228,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (res.ok) {
         statusMessage.textContent = data.message;
         statusBadgeText.textContent = 'Đang chạy';
-        statusDot.parentElement.className = 'status-indicator running';
+        statusDot.parentElement.className = 'gemini-badge status-badge running';
       } else {
         alert('Lỗi gửi thử: ' + data.error);
         statusMessage.textContent = 'Lỗi gửi thử: ' + data.error;
@@ -248,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (res.ok) {
         statusBadgeText.textContent = 'Đang chạy';
-        statusDot.parentElement.className = 'status-indicator running';
+        statusDot.parentElement.className = 'gemini-badge status-badge running';
         statusMessage.textContent = 'Đã khởi động tiến trình tự động gửi!';
         btnStartSender.disabled = true;
         btnStopSender.disabled = false;
@@ -266,7 +266,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch('/api/stop', { method: 'POST' });
       const data = await res.json();
       statusBadgeText.textContent = 'Đã dừng';
-      statusDot.parentElement.className = 'status-indicator';
+      statusDot.parentElement.className = 'gemini-badge status-badge';
       statusMessage.textContent = 'Đã dừng tiến trình tự động gửi.';
       btnStartSender.disabled = false;
       btnStopSender.disabled = true;
@@ -282,12 +282,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (data.status === 'running') {
         statusBadgeText.textContent = 'Đang chạy';
-        statusDot.parentElement.className = 'status-indicator running';
+        statusDot.parentElement.className = 'gemini-badge status-badge running';
         btnStartSender.disabled = true;
         btnStopSender.disabled = false;
       } else if (data.status === 'finished') {
         statusBadgeText.textContent = 'Hoàn thành';
-        statusDot.parentElement.className = 'status-indicator';
+        statusDot.parentElement.className = 'gemini-badge status-badge';
         btnStartSender.disabled = false;
         btnStopSender.disabled = true;
       }
