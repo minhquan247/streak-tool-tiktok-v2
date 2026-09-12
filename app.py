@@ -222,15 +222,12 @@ def run_sender_worker(config: dict[str, Any]) -> None:
                 asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
             except Exception:
                 pass
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
 
         notifier = Notifier(config)
         video_pool = VideoPool(config)
         sender = TikTokSender(config, notifier, video_pool, status_cb=add_log)
 
-        loop.run_until_complete(sender.send_daily_links())
-        loop.close()
+        asyncio.run(sender.send_daily_links())
 
         sender_status["state"] = "finished"
         sender_status["last_run"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
@@ -282,20 +279,20 @@ def run_test_send_worker(config: dict[str, Any], test_username: str, test_video:
                 asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
             except Exception:
                 pass
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
 
         test_config = dict(config)
         test_config["recipients"] = [{"name": test_username, "username": test_username}]
         if test_video:
-            test_config["videos"] = [test_video]
+            if test_config.get("send_method", "video") == "text":
+                test_config["text_messages"] = [test_video]
+            else:
+                test_config["videos"] = [test_video]
 
         notifier = Notifier(test_config)
         video_pool = VideoPool(test_config)
         sender = TikTokSender(test_config, notifier, video_pool, status_cb=add_log)
 
-        loop.run_until_complete(sender.send_daily_links())
-        loop.close()
+        asyncio.run(sender.send_daily_links())
 
         sender_status["state"] = "finished"
         sender_status["last_run"] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")

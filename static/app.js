@@ -3,6 +3,27 @@ document.addEventListener('DOMContentLoaded', () => {
   const delayMinInput = document.getElementById('delayMin');
   const delayMaxInput = document.getElementById('delayMax');
   const videoLinksInput = document.getElementById('videoLinks');
+  const textMessagesInput = document.getElementById('textMessages');
+  const methodVideo = document.getElementById('methodVideo');
+  const methodText = document.getElementById('methodText');
+  const sectionVideo = document.getElementById('sectionVideo');
+  const sectionText = document.getElementById('sectionText');
+
+  // Toggle sections based on Send Method
+  function updateMethodUI() {
+    if (methodVideo.checked) {
+      sectionVideo.classList.add('active');
+      sectionText.classList.remove('active');
+    } else {
+      sectionVideo.classList.remove('active');
+      sectionText.classList.add('active');
+    }
+  }
+  if (methodVideo && methodText) {
+    methodVideo.addEventListener('change', updateMethodUI);
+    methodText.addEventListener('change', updateMethodUI);
+  }
+
   const cookieJsonInput = document.getElementById('cookieJsonInput');
   const telegramEnabledCheck = document.getElementById('telegramEnabled');
   const telegramBotTokenInput = document.getElementById('telegramBotToken');
@@ -128,6 +149,15 @@ document.addEventListener('DOMContentLoaded', () => {
         delayMinInput.value = delay[0] || 8;
         delayMaxInput.value = delay[1] || 18;
         videoLinksInput.value = (config.videos || []).join('\n');
+        textMessagesInput.value = (config.text_messages || []).join('\n');
+        
+        const method = config.send_method || 'video';
+        if (method === 'text') {
+          methodText.checked = true;
+        } else {
+          methodVideo.checked = true;
+        }
+        updateMethodUI();
 
         telegramEnabledCheck.checked = config.telegram?.enabled || false;
         telegramBotTokenInput.value = config.telegram?.bot_token || '';
@@ -202,6 +232,11 @@ document.addEventListener('DOMContentLoaded', () => {
       .split('\n')
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
+      
+    const textList = textMessagesInput.value
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
 
     const checkedBoxes = document.querySelectorAll('.user-item-box input[type="checkbox"]:checked');
     const selectedRecipients = Array.from(checkedBoxes).map((box) => {
@@ -210,6 +245,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const payload = {
+      send_method: methodText.checked ? 'text' : 'video',
       schedule: {
         time: scheduleTimeInput.value || '00:00',
         timezone: 'Asia/Ho_Chi_Minh',
@@ -223,6 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
         headless: true,
       },
       videos: videoList,
+      text_messages: textList,
       recipients: selectedRecipients,
       telegram: {
         enabled: telegramEnabledCheck.checked,

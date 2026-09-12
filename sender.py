@@ -328,17 +328,32 @@ class TikTokSender:
             logger.warning("Skipping %s because username is missing.", name)
             return
 
-        videos = [
-            video.strip()
-            for video in self.config.get("videos", [])
-            if isinstance(video, str) and video.strip()
-        ]
-        if not videos:
-            video_link = "https://www.tiktok.com/@tiktok"
-        else:
-            video_link = random.choice(videos)
+        send_method = self.config.get("send_method", "video")
+        message_to_send = ""
 
-        logger.info("Selected video for %s (@%s): %s", name, username, video_link)
+        if send_method == "text":
+            texts = [
+                t.strip()
+                for t in self.config.get("text_messages", [])
+                if isinstance(t, str) and t.strip()
+            ]
+            if not texts:
+                self.log_status(f"⚠️ Không có nội dung text nào được thiết lập. Bỏ qua @{username}.", "warn")
+                return
+            message_to_send = random.choice(texts)
+            logger.info("Selected text for %s (@%s): %s", name, username, message_to_send)
+        else:
+            videos = [
+                video.strip()
+                for video in self.config.get("videos", [])
+                if isinstance(video, str) and video.strip()
+            ]
+            if not videos:
+                message_to_send = "https://www.tiktok.com/@tiktok"
+            else:
+                message_to_send = random.choice(videos)
+            logger.info("Selected video for %s (@%s): %s", name, username, message_to_send)
+
         page = await timed_await(f"new page for @{username}", context.new_page())
         try:
             total_start = time.time()
@@ -357,7 +372,7 @@ class TikTokSender:
                 handle_sleep_hours_popup(page),
             )
             send_start = time.time()
-            await timed_await(f"message send call for @{username}", self._send_message(page, video_link))
+            await timed_await(f"message send call for @{username}", self._send_message(page, message_to_send))
             log_duration(f"message send for @{username}", send_start)
             await timed_await(
                 f"post-send captcha wait for @{username}",
@@ -371,8 +386,11 @@ class TikTokSender:
                 f"post-send sleep hours popup check for @{username}",
                 handle_sleep_hours_popup(page),
             )
-            logger.info("Sent video link to %s: %s", name, video_link)
+            logger.info("Sent message to %s: %s", name, message_to_send)
             log_duration(f"total send flow for @{username}", total_start)
+            self.log_status(
+                f"✅ Đã gửi streak thành công đến {name} (@{username})", "success"
+            )
         finally:
             await timed_await(f"close page for @{username}", page.close())
 

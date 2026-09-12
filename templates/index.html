@@ -73,8 +73,8 @@
             </div>
           </div>
           <div class="form-group">
-            <label for="testVideoUrl">Link Video TikTok (Để trống để chọn ngẫu nhiên)</label>
-            <input type="text" id="testVideoUrl" placeholder="https://www.tiktok.com/@user/video/..." />
+            <label for="testVideoUrl">Nội dung gửi thử (Video/Text - Để trống sẽ lấy tự động)</label>
+            <input type="text" id="testVideoUrl" placeholder="Nhập text hoặc link video tuỳ ý..." />
           </div>
           <button id="btnTestSend" class="btn btn-primary">
             <span>Gửi Thử Tin Nhắn Ngay →</span>
@@ -87,11 +87,18 @@
         <div class="card-head">
           <span class="step-num">02</span>
           <div>
-            <h2>Thời Gian & Delay Gửi</h2>
-            <p>Khung giờ chạy tự động hàng ngày và khoảng trễ giữa các tin nhắn.</p>
+            <h2>Thời Gian & Nội Dung Gửi</h2>
+            <p>Khung giờ chạy tự động và lựa chọn phương thức (Text/Video).</p>
           </div>
         </div>
         <div class="card-body">
+          <div class="segmented-control">
+            <input type="radio" id="methodVideo" name="sendMethod" value="video" checked />
+            <label for="methodVideo">📹 Gửi Video</label>
+            <input type="radio" id="methodText" name="sendMethod" value="text" />
+            <label for="methodText">💬 Gửi Text</label>
+          </div>
+
           <div class="form-group">
             <label for="scheduleTime">Giờ chạy tự động hàng ngày (HH:MM)</label>
             <input type="text" id="scheduleTime" placeholder="00:00 (Ví dụ: 08:00)" />
@@ -106,9 +113,19 @@
               <input type="number" id="delayMax" value="18" min="1" />
             </div>
           </div>
-          <div class="form-group">
-            <label for="videoLinks">Danh sách Video TikTok (Mỗi link 1 dòng)</label>
-            <textarea id="videoLinks" rows="3" placeholder="https://www.tiktok.com/@user/video/..."></textarea>
+          
+          <div id="sectionVideo" class="dynamic-section active">
+            <div class="form-group">
+              <label for="videoLinks">Danh sách Video TikTok (Mỗi link 1 dòng)</label>
+              <textarea id="videoLinks" rows="3" placeholder="https://www.tiktok.com/@user/video/..."></textarea>
+            </div>
+          </div>
+
+          <div id="sectionText" class="dynamic-section">
+            <div class="form-group">
+              <label for="textMessages">Danh sách nội dung Text (Mỗi câu 1 dòng - Sẽ random)</label>
+              <textarea id="textMessages" rows="3" placeholder="Chào bạn, tương tác nhé!&#10;Chúc bạn buổi sáng vui vẻ!"></textarea>
+            </div>
           </div>
         </div>
       </section>
