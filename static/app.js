@@ -31,8 +31,35 @@ document.addEventListener('DOMContentLoaded', () => {
   const logConsole = document.getElementById('logConsole');
   const btnClearLogs = document.getElementById('btnClearLogs');
 
-  let currentRecipients = [];
-  let currentProcessState = 'idle';
+  // ===========================================
+  // Light / Dark Theme Switcher
+  // ===========================================
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+  const themeLabel = themeToggleBtn ? themeToggleBtn.querySelector('.theme-label') : null;
+
+  function initTheme() {
+    const savedTheme = localStorage.getItem('app-theme') || 'dark';
+    applyTheme(savedTheme);
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('app-theme', theme);
+    if (themeLabel) {
+      themeLabel.textContent = theme === 'light' ? 'Sáng' : 'Tối';
+    }
+  }
+
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      applyTheme(newTheme);
+      showToast(`Đã chuyển sang Chế độ ${newTheme === 'light' ? 'Giao diện Sáng' : 'Giao diện Tối Dịu Mắt'}`, 'info');
+    });
+  }
+
+  initTheme();
 
   // ===========================================
   // Toast Notification System
