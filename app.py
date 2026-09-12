@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__, template_folder="templates", static_folder="static")
 CORS(app)
 
+import tempfile
+
 CONFIG_PATH = Path("config.json")
 COOKIES_PATH = Path("cookies.json")
 
@@ -29,8 +31,28 @@ sender_status = {"state": "idle", "message": "Sẵn sàng", "last_run": None}
 active_thread: threading.Thread | None = None
 
 
+def get_readable_config_path() -> Path:
+    if CONFIG_PATH.exists():
+        return CONFIG_PATH
+    tmp_path = Path(tempfile.gettempdir()) / "config.json"
+    if tmp_path.exists():
+        return tmp_path
+    return CONFIG_PATH
+
+
+def get_readable_cookies_path(cookie_file: str | Path = "cookies.json") -> Path:
+    p = Path(cookie_file)
+    if p.exists():
+        return p
+    tmp_path = Path(tempfile.gettempdir()) / p.name
+    if tmp_path.exists():
+        return tmp_path
+    return p
+
+
 def load_config() -> dict[str, Any]:
-    if not CONFIG_PATH.exists():
+    config_path = get_readable_config_path()
+    if not config_path.exists():
         return {
             "schedule": {"time": "00:00", "timezone": "Asia/Ho_Chi_Minh", "run_on_start": True},
             "cookie_file": "cookies.json",
@@ -39,13 +61,31 @@ def load_config() -> dict[str, Any]:
             "videos": [],
             "telegram": {"enabled": False, "bot_token": "", "chat_id": ""},
         }
-    with CONFIG_PATH.open("r", encoding="utf-8") as file:
-        return json.load(file)
+    try:
+        with config_path.open("r", encoding="utf-8") as file:
+            return json.load(file)
+    except Exception:
+        logger.exception("Failed to load config from %s", config_path)
+        return {
+            "schedule": {"time": "00:00", "timezone": "Asia/Ho_Chi_Minh", "run_on_start": True},
+            "cookie_file": "cookies.json",
+            "tiktok": {"message_delay_seconds": [8, 18], "headless": True},
+            "recipients": [],
+            "videos": [],
+            "telegram": {"enabled": False, "bot_token": "", "chat_id": ""},
+        }
 
 
-def save_config_file(data: dict[str, Any]) -> None:
-    with CONFIG_PATH.open("w", encoding="utf-8") as file:
-        json.dump(data, file, indent=2, ensure_ascii=False)
+def save_config_file(data: dict[str, Any]) -> Path:
+    try:
+        with CONFIG_PATH.open("w", encoding="utf-8") as file:
+            json.dump(data, file, indent=2, ensure_ascii=False)
+        return CONFIG_PATH
+    except (OSError, PermissionError):
+        tmp_path = Path(tempfile.gettempdir()) / "config.json"
+        with tmp_path.open("w", encoding="utf-8") as file:
+            json.dump(data, file, indent=2, ensure_ascii=False)
+        return tmp_path
 
 
 @app.route("/")
@@ -89,14 +129,20 @@ def save_cookies():
         else:
             cookies_json = cookies_data
 
-        with COOKIES_PATH.open("w", encoding="utf-8") as file:
-            json.dump(cookies_json, file, indent=2)
+        saved_path = COOKIES_PATH
+        try:
+            with COOKIES_PATH.open("w", encoding="utf-8") as file:
+                json.dump(cookies_json, file, indent=2)
+        except (OSError, PermissionError):
+            saved_path = Path(tempfile.gettempdir()) / "cookies.json"
+            with saved_path.open("w", encoding="utf-8") as file:
+                json.dump(cookies_json, file, indent=2)
 
         config = load_config()
-        config["cookie_file"] = str(COOKIES_PATH)
+        config["cookie_file"] = str(saved_path)
         save_config_file(config)
 
-        is_valid = check_cookies_valid(COOKIES_PATH)
+        is_valid = check_cookies_valid(saved_path)
         return jsonify(
             {
                 "message": "Đã lưu cookie thành công",

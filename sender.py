@@ -44,8 +44,23 @@ def get_user_data_dir_key() -> str:
     return "user_data_dir_linux"
 
 
+import tempfile
+
+logger = logging.getLogger(__name__)
+
+
+def resolve_cookie_path(cookie_file: str | Path) -> Path:
+    path = Path(cookie_file)
+    if path.exists():
+        return path
+    tmp_path = Path(tempfile.gettempdir()) / path.name
+    if tmp_path.exists():
+        return tmp_path
+    return path
+
+
 def check_cookies_valid(cookie_file: str | Path) -> bool:
-    cookie_path = Path(cookie_file)
+    cookie_path = resolve_cookie_path(cookie_file)
     if not cookie_path.exists():
         return False
 
@@ -60,9 +75,12 @@ def check_cookies_valid(cookie_file: str | Path) -> bool:
         if cookie.get("name") != "sessionid":
             continue
 
+        if not cookie.get("value"):
+            return False
+
         expires = cookie.get("expires", cookie.get("expirationDate"))
         if expires is None:
-            return False
+            return True
 
         try:
             return time.time() < float(expires)
@@ -155,7 +173,7 @@ class TikTokSender:
                 await context.close()
 
     async def _load_cookies(self, context: BrowserContext) -> bool:
-        cookie_file = Path(self.config.get("cookie_file", "cookies.json"))
+        cookie_file = resolve_cookie_path(self.config.get("cookie_file", "cookies.json"))
         if not cookie_file.exists():
             return False
 
