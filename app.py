@@ -105,14 +105,17 @@ def update_config():
     try:
         new_data = request.json
         if not new_data:
+            add_log("Dữ liệu gửi lên không hợp lệ.", "error")
             return jsonify({"error": "Dữ liệu gửi lên không hợp lệ"}), 400
 
         current_config = load_config()
         current_config.update(new_data)
         save_config_file(current_config)
+        add_log("Đã lưu cấu hình cài đặt thành công.", "success")
         return jsonify({"message": "Đã lưu cấu hình thành công", "config": current_config})
     except Exception as exc:
         logger.exception("Failed to update config")
+        add_log(f"Lỗi lưu cấu hình: {exc}", "error")
         return jsonify({"error": str(exc)}), 500
 
 
@@ -122,6 +125,7 @@ def save_cookies():
         payload = request.json
         cookies_data = payload.get("cookies")
         if not cookies_data:
+            add_log("Không tìm thấy nội dung cookie dán vào.", "error")
             return jsonify({"error": "Không tìm thấy nội dung cookie"}), 400
 
         if isinstance(cookies_data, str):
@@ -143,15 +147,22 @@ def save_cookies():
         save_config_file(config)
 
         is_valid = check_cookies_valid(saved_path)
+        count = len(cookies_json) if isinstance(cookies_json, list) else 0
+        if is_valid:
+            add_log(f"Đã lưu {count} cookie TikTok (Trạng thái: Hợp lệ).", "success")
+        else:
+            add_log(f"Đã lưu {count} cookie nhưng Cookie thiếu 'sessionid' hoặc đã hết hạn!", "error")
+
         return jsonify(
             {
                 "message": "Đã lưu cookie thành công",
                 "valid": is_valid,
-                "count": len(cookies_json) if isinstance(cookies_json, list) else 0,
+                "count": count,
             }
         )
     except Exception as exc:
         logger.exception("Failed to save cookies")
+        add_log(f"Mã cookie JSON không hợp lệ: {exc}", "error")
         return jsonify({"error": str(exc)}), 500
 
 
@@ -161,7 +172,9 @@ sender_status = {
     "state": "idle",
     "message": "Sẵn sàng",
     "last_run": None,
-    "logs": [],
+    "logs": [
+        {"time": datetime.now().strftime("%H:%M:%S"), "text": "Bảng điều khiển đã sẵn sàng. Vui lòng kiểm tra Cookie và danh sách người nhận trước khi gửi.", "level": "info"}
+    ],
 }
 active_thread: threading.Thread | None = None
 
@@ -201,7 +214,6 @@ def clear_logs():
 def run_sender_worker(config: dict[str, Any]) -> None:
     global sender_status
     sender_status["state"] = "running"
-    sender_status["logs"] = []
     add_log("Bắt đầu tiến trình tự động gửi streak...")
     try:
         loop = asyncio.new_event_loop()
@@ -226,17 +238,23 @@ def run_sender_worker(config: dict[str, Any]) -> None:
 def start_sender():
     global active_thread, sender_status
     if active_thread and active_thread.is_alive():
+        add_log("Không thể khởi động: Đang có tiến trình gửi streak đang chạy.", "warn")
         return jsonify({"error": "Tiến trình gửi streak đang chạy"}), 400
 
     config = load_config()
     if not check_cookies_valid(config.get("cookie_file", "cookies.json")):
-        return jsonify({"error": "Cookie đã hết hạn hoặc không hợp lệ. Vui lòng dán lại cookie mới."}), 400
+        msg = "Không thể chạy: Cookie chưa có hoặc đã hết hạn! Vui lòng dán Cookie JSON vào Mục 03 và bấm 'Lưu & Kiểm Tra Cookie'."
+        add_log(msg, "error")
+        return jsonify({"error": msg}), 400
 
     if not config.get("recipients"):
-        return jsonify({"error": "Chưa có người nhận nào được chọn. Vui lòng chọn người nhận."}), 400
+        msg = "Không thể chạy: Chưa có người nhận nào được chọn trong danh sách!"
+        add_log(msg, "error")
+        return jsonify({"error": msg}), 400
 
     active_thread = threading.Thread(target=run_sender_worker, args=(config,), daemon=True)
     active_thread.start()
+    add_log("Kích hoạt tiến trình gửi streak tự động...", "info")
     return jsonify({"message": "Đã khởi động tiến trình gửi streak", "status": "running"})
 
 
@@ -251,7 +269,6 @@ def stop_sender():
 def run_test_send_worker(config: dict[str, Any], test_username: str, test_video: str) -> None:
     global sender_status
     sender_status["state"] = "running"
-    sender_status["logs"] = []
     add_log(f"Bắt đầu gửi tin nhắn thử nghiệm tới @{test_username}...")
     try:
         loop = asyncio.new_event_loop()
@@ -281,6 +298,7 @@ def run_test_send_worker(config: dict[str, Any], test_username: str, test_video:
 def test_send():
     global active_thread, sender_status
     if active_thread and active_thread.is_alive():
+        add_log("Đang có tiến trình khác đang chạy, vui lòng chờ...", "warn")
         return jsonify({"error": "Đang có tiến trình khác đang chạy, vui lòng chờ"}), 400
 
     payload = request.json or {}
@@ -288,11 +306,15 @@ def test_send():
     video_url = payload.get("video_url", "").strip()
 
     if not target_user:
-        return jsonify({"error": "Vui lòng nhập TikTok username cần gửi thử"}), 400
+        msg = "Vui lòng nhập TikTok username cần gửi thử."
+        add_log(msg, "error")
+        return jsonify({"error": msg}), 400
 
     config = load_config()
     if not check_cookies_valid(config.get("cookie_file", "cookies.json")):
-        return jsonify({"error": "Cookie hết hạn hoặc không hợp lệ. Vui lòng cập nhật cookie trước khi gửi thử."}), 400
+        msg = "Cookie chưa hợp lệ hoặc đã hết hạn! Vui lòng dán Cookie JSON vào mục 03 và bấm 'Lưu & Kiểm Tra Cookie' trước."
+        add_log(msg, "error")
+        return jsonify({"error": msg}), 400
 
     active_thread = threading.Thread(
         target=run_test_send_worker,
@@ -300,6 +322,7 @@ def test_send():
         daemon=True,
     )
     active_thread.start()
+    add_log(f"Đã kích hoạt tiến trình gửi thử tin nhắn tới @{target_user}...", "info")
     return jsonify({"message": f"Đang bắt đầu gửi tin nhắn thử nghiệm tới @{target_user}..."})
 
 
