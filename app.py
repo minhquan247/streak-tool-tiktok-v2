@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import os
+import sys
 import threading
 from pathlib import Path
 from typing import Any
@@ -216,6 +217,11 @@ def run_sender_worker(config: dict[str, Any]) -> None:
     sender_status["state"] = "running"
     add_log("Bắt đầu tiến trình tự động gửi streak...")
     try:
+        if sys.platform == "win32":
+            try:
+                asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+            except Exception:
+                pass
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
@@ -271,6 +277,11 @@ def run_test_send_worker(config: dict[str, Any], test_username: str, test_video:
     sender_status["state"] = "running"
     add_log(f"Bắt đầu gửi tin nhắn thử nghiệm tới @{test_username}...")
     try:
+        if sys.platform == "win32":
+            try:
+                asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+            except Exception:
+                pass
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
@@ -328,4 +339,4 @@ def test_send():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)

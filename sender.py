@@ -159,39 +159,56 @@ class TikTokSender:
             return
 
         self.log_status(f"Bắt đầu tiến trình gửi streak đến {len(self.recipients)} người nhận...")
+        self.log_status("Đang khởi tạo trình duyệt Playwright...")
 
         async with async_playwright() as playwright:
-            key = get_user_data_dir_key()
-            user_data_dir = Path(
-                self.tiktok_config.get(key) or get_default_user_data_dir()
-            ).expanduser()
-
             is_headless = self.tiktok_config.get("headless", True)
-            chrome_path = get_chrome_path()
+            launch_args = [
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-blink-features=AutomationControlled",
+            ]
 
-            launch_kwargs: dict[str, Any] = {
-                "user_data_dir": str(user_data_dir),
-                "headless": is_headless,
-                "args": [
-                    "--restore-last-session",
-                    "--disable-session-crashed-bubble",
-                    "--hide-crash-restore-bubble",
-                    "--no-sandbox",
-                    "--disable-setuid-sandbox",
-                    "--disable-dev-shm-usage",
-                ],
-                "ignore_default_args": ["--enable-automation", "--no-first-run"],
-            }
-            if Path(chrome_path).exists():
-                launch_kwargs["executable_path"] = chrome_path
+            browser = None
+            context = None
+            custom_exec = self.tiktok_config.get("executable_path")
+            
+            if custom_exec and Path(custom_exec).exists():
+                self.log_status(f"Mở trình duyệt tùy chỉnh (Headless={is_headless})...")
+                browser = await playwright.chromium.launch(
+                    executable_path=custom_exec,
+                    headless=is_headless,
+                    args=launch_args,
+                )
+            else:
+                self.log_status(f"Mở trình duyệt Chromium (Headless={is_headless})...")
+                try:
+                    browser = await playwright.chromium.launch(
+                        headless=is_headless,
+                        args=launch_args,
+                    )
+                except Exception as launch_err:
+                    chrome_path = get_chrome_path()
+                    if Path(chrome_path).exists():
+                        self.log_status(f"Thử mở Google Chrome hệ thống tại {chrome_path}...", "warn")
+                        browser = await playwright.chromium.launch(
+                            executable_path=chrome_path,
+                            headless=is_headless,
+                            args=launch_args,
+                        )
+                    else:
+                        raise launch_err
 
-            self.log_status(f"Đang mở trình duyệt (Headless={is_headless})...")
-            context = await playwright.chromium.launch_persistent_context(**launch_kwargs)
+            context = await browser.new_context(
+                viewport={"width": 1280, "height": 800},
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+            )
             context.set_default_timeout(int(self.tiktok_config.get("navigation_timeout_ms", 60000)))
 
             try:
-                page = context.pages[0] if context.pages else await context.new_page()
-                self.log_status("Đang nạp Cookie TikTok...")
+                page = await context.new_page()
+                self.log_status("Đang nạp Cookie TikTok vào trình duyệt...")
                 cookies_loaded = await self._load_cookies(context)
 
                 self.log_status("Đang kiểm tra trang đăng nhập TikTok...")
@@ -202,7 +219,7 @@ class TikTokSender:
 
                 for idx, recipient in enumerate(self.recipients, 1):
                     username = recipient.get("username") or recipient.get("name")
-                    self.log_status(f"[{idx}/{len(self.recipients)}] Đang xử lý gửi tin nhắn tới @{username}...")
+                    self.log_status(f"[{idx}/{len(self.recipients)}] Tiến hành gửi streak tới @{username}...")
                     try:
                         await self._send_to_recipient(context, recipient)
                         success_count += 1
@@ -218,7 +235,10 @@ class TikTokSender:
                 total_msg = f"Hoàn tất gửi streak! Thành công: {success_count}/{len(self.recipients)}, Thất bại: {fail_count}."
                 self.log_status(total_msg, "success" if fail_count == 0 else "warn")
             finally:
-                await context.close()
+                if context:
+                    await context.close()
+                if browser:
+                    await browser.close()
 
     async def _load_cookies(self, context: BrowserContext) -> bool:
         cookie_file = resolve_cookie_path(self.config.get("cookie_file", "cookies.json"))
@@ -277,6 +297,7 @@ class TikTokSender:
         return True
 
     async def _ensure_logged_in(self, page: Page, cookies_loaded: bool = False) -> None:
+        self.log_status("Đang kiểm tra giao diện tin nhắn TikTok...")
         await page.goto("https://www.tiktok.com/messages", wait_until="domcontentloaded", timeout=30000)
         await handle_screen_time_popup(page)
         await handle_sleep_hours_popup(page)
@@ -286,19 +307,19 @@ class TikTokSender:
 
         if "login" in page.url.lower():
             if cookies_loaded:
-                logger.error("Cookie expired, please re-export")
+                logger.error("Cookie expired or invalid")
             await self.notifier.telegram(
-                "Yêu cầu đăng nhập TikTok. Vui lòng cập nhật lại cookie hoặc đăng nhập lại."
+                "Yêu cầu đăng nhập TikTok. Vui lòng cập nhật lại cookie mới."
             )
             self.notifier.desktop(
                 "Yêu cầu đăng nhập TikTok",
                 "Vui lòng cập nhật lại cookie để tiếp tục gửi streak.",
             )
-            logger.info("Waiting for TikTok login.")
-            await page.wait_for_url(lambda url: "login" not in url.lower(), timeout=0)
-            await wait_for_captcha_if_present(page, self.notifier)
-            await handle_screen_time_popup(page)
-            await handle_sleep_hours_popup(page)
+            err_msg = "TikTok bị điều hướng sang trang đăng nhập. Cookie đã hết hạn hoặc không hợp lệ, vui lòng cập nhật lại Cookie!"
+            self.log_status(err_msg, "error")
+            raise RuntimeError(err_msg)
+        else:
+            self.log_status("Đã đăng nhập thành công vào TikTok!", "success")
 
     async def _send_to_recipient(self, context: BrowserContext, recipient: dict[str, Any]) -> None:
         name = recipient.get("name", "recipient")

@@ -13,8 +13,6 @@ CAPTCHA_TEXT_MARKERS = (
     "verification",
     "security check",
     "drag the slider",
-    "please try again",
-    "Snooze",
 )
 
 CAPTCHA_SELECTOR_MARKERS = (
@@ -47,6 +45,7 @@ async def wait_for_captcha_if_present(
     page: Page,
     notifier: Notifier,
     poll_seconds: int = 5,
+    max_checks: int = 12,
 ) -> None:
     if not await is_captcha_present(page):
         return
@@ -54,12 +53,14 @@ async def wait_for_captcha_if_present(
     await notifier.captcha_alert(page.url)
     logger.warning("CAPTCHA detected. Waiting for user to solve it.")
 
-    while True:
+    for attempt in range(max_checks):
         await page.wait_for_timeout(poll_seconds * 1000)
         if not await is_captcha_present(page):
             logger.info("CAPTCHA solved, continuing.")
-            break
-        logger.info("CAPTCHA still present, checking again in %ss...", poll_seconds)
+            return
+        logger.info("CAPTCHA still present, checking again in %ss (%d/%d)...", poll_seconds, attempt + 1, max_checks)
+
+    logger.warning("Reached max wait timeout for CAPTCHA. Proceeding anyway.")
 
 
 
