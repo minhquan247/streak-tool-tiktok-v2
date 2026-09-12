@@ -25,7 +25,7 @@ CORS(app)
 CONFIG_PATH = Path("config.json")
 COOKIES_PATH = Path("cookies.json")
 
-sender_status = {"state": "idle", "message": "Ready", "last_run": None}
+sender_status = {"state": "idle", "message": "Sẵn sàng", "last_run": None}
 active_thread: threading.Thread | None = None
 
 
@@ -65,12 +65,12 @@ def update_config():
     try:
         new_data = request.json
         if not new_data:
-            return jsonify({"error": "Invalid payload"}), 400
+            return jsonify({"error": "Dữ liệu gửi lên không hợp lệ"}), 400
 
         current_config = load_config()
         current_config.update(new_data)
         save_config_file(current_config)
-        return jsonify({"message": "Configuration saved successfully", "config": current_config})
+        return jsonify({"message": "Đã lưu cấu hình thành công", "config": current_config})
     except Exception as exc:
         logger.exception("Failed to update config")
         return jsonify({"error": str(exc)}), 500
@@ -82,7 +82,7 @@ def save_cookies():
         payload = request.json
         cookies_data = payload.get("cookies")
         if not cookies_data:
-            return jsonify({"error": "No cookies content provided"}), 400
+            return jsonify({"error": "Không tìm thấy nội dung cookie"}), 400
 
         if isinstance(cookies_data, str):
             cookies_json = json.loads(cookies_data)
@@ -99,7 +99,7 @@ def save_cookies():
         is_valid = check_cookies_valid(COOKIES_PATH)
         return jsonify(
             {
-                "message": "Cookies saved successfully",
+                "message": "Đã lưu cookie thành công",
                 "valid": is_valid,
                 "count": len(cookies_json) if isinstance(cookies_json, list) else 0,
             }
@@ -126,7 +126,7 @@ def get_status():
 def run_sender_worker(config: dict[str, Any]) -> None:
     global sender_status
     sender_status["state"] = "running"
-    sender_status["message"] = "Sending daily streak video links..."
+    sender_status["message"] = "Đang gửi video streak TikTok đến danh sách bạn bè..."
     try:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -139,37 +139,37 @@ def run_sender_worker(config: dict[str, Any]) -> None:
         loop.close()
 
         sender_status["state"] = "finished"
-        sender_status["message"] = "Successfully sent streak links to recipients!"
+        sender_status["message"] = "Đã gửi thành công video streak đến tất cả người nhận!"
     except Exception as exc:
         logger.exception("Worker error during send")
         sender_status["state"] = "failed"
-        sender_status["message"] = f"Failed: {exc}"
+        sender_status["message"] = f"Lỗi tiến trình: {exc}"
 
 
 @app.route("/api/start", methods=["POST"])
 def start_sender():
     global active_thread, sender_status
     if active_thread and active_thread.is_alive():
-        return jsonify({"error": "Sender is already running"}), 400
+        return jsonify({"error": "Tiến trình gửi streak đang chạy"}), 400
 
     config = load_config()
     if not check_cookies_valid(config.get("cookie_file", "cookies.json")):
-        return jsonify({"error": "Cookies are expired or invalid. Please upload fresh cookies."}), 400
+        return jsonify({"error": "Cookie đã hết hạn hoặc không hợp lệ. Vui lòng dán lại cookie mới."}), 400
 
     if not config.get("recipients"):
-        return jsonify({"error": "No recipients configured. Please select recipients."}), 400
+        return jsonify({"error": "Chưa có người nhận nào được chọn. Vui lòng chọn người nhận."}), 400
 
     active_thread = threading.Thread(target=run_sender_worker, args=(config,), daemon=True)
     active_thread.start()
-    return jsonify({"message": "Sender task started", "status": "running"})
+    return jsonify({"message": "Đã khởi động tiến trình gửi streak", "status": "running"})
 
 
 @app.route("/api/stop", methods=["POST"])
 def stop_sender():
     global sender_status
     sender_status["state"] = "stopped"
-    sender_status["message"] = "Sender stopped by user"
-    return jsonify({"message": "Sender process stopped"})
+    sender_status["message"] = "Đã dừng tiến trình theo yêu cầu của người dùng"
+    return jsonify({"message": "Đã dừng tiến trình gửi streak"})
 
 
 if __name__ == "__main__":

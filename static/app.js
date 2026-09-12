@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch('/api/start', { method: 'POST' });
       const data = await res.json();
       if (res.ok) {
-        statusBadge.textContent = 'Đang chạy (Running)';
+        statusBadge.textContent = 'Đang chạy';
         statusBadge.className = 'badge status-running';
         statusMessage.textContent = 'Đã khởi động tiến trình gửi Streak!';
         btnStartSender.disabled = true;
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const res = await fetch('/api/stop', { method: 'POST' });
       const data = await res.json();
-      statusBadge.textContent = 'Đã dừng (Stopped)';
+      statusBadge.textContent = 'Đã dừng';
       statusBadge.className = 'badge status-idle';
       statusMessage.textContent = 'Đã dừng gửi Streak.';
       btnStartSender.disabled = false;
@@ -236,12 +236,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch('/api/status');
       const data = await res.json();
       if (data.status === 'running') {
-        statusBadge.textContent = 'Đang chạy (Running)';
+        statusBadge.textContent = 'Đang chạy';
         statusBadge.className = 'badge status-running';
         btnStartSender.disabled = true;
         btnStopSender.disabled = false;
       } else if (data.status === 'finished') {
-        statusBadge.textContent = 'Hoàn thành (Finished)';
+        statusBadge.textContent = 'Hoàn thành';
         statusBadge.className = 'badge status-idle';
         btnStartSender.disabled = false;
         btnStopSender.disabled = true;

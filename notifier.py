@@ -58,11 +58,11 @@ class Notifier:
 
     async def captcha_alert(self, page_url: str) -> None:
         message = (
-            "TikTok CAPTCHA detected. Please solve it in the open browser window; "
-            "the sender will resume automatically after it clears.\n\n"
-            f"Page: {page_url}"
+            "⚠️ Phát hiện TikTok CAPTCHA! Vui lòng mở trình duyệt để giải captcha; "
+            "hệ thống sẽ tự động chạy tiếp ngay sau khi giải xong.\n\n"
+            f"Trang: {page_url}"
         )
-        self.desktop("TikTok CAPTCHA detected", message)
+        self.desktop("Cảnh báo TikTok CAPTCHA", message)
         await self.telegram(message)
 
     def captcha_alert_sync(self, page_url: str) -> None:

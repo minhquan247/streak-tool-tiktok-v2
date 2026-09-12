@@ -216,11 +216,11 @@ class TikTokSender:
             if cookies_loaded:
                 logger.error("Cookie expired, please re-export")
             await self.notifier.telegram(
-                "TikTok login is required. Please log in using the open browser window."
+                "Yêu cầu đăng nhập TikTok. Vui lòng cập nhật lại cookie hoặc đăng nhập lại."
             )
             self.notifier.desktop(
-                "TikTok login required",
-                "Please log in using the open browser window. The sender is waiting.",
+                "Yêu cầu đăng nhập TikTok",
+                "Vui lòng cập nhật lại cookie để tiếp tục gửi streak.",
             )
             logger.info("Waiting for TikTok login.")
             await page.wait_for_url(lambda url: "login" not in url.lower(), timeout=0)
