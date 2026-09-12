@@ -3,3 +3,6 @@ playwright>=1.45.0
 plyer>=2.1.0
 python-telegram-bot>=21.0
 pywin32>=306; sys_platform == "win32"
+Flask>=3.0.0
+gunicorn>=21.2.0
+flask-cors>=4.0.0

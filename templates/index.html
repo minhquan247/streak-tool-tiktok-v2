@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TikTok Streak Sender - Web Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header-bar">
+      <div class="logo-area">
+        <div class="logo-icon">⚡</div>
+        <div>
+          <h1>TikTok Streak Tool</h1>
+          <p class="subtitle">Web Dashboard & Automation Control</p>
+        </div>
+      </div>
+      <div class="status-badge-container">
+        <span id="statusBadge" class="badge status-idle">Đang chờ (Idle)</span>
+        <span id="cookieBadge" class="badge cookie-valid">Cookie Hợp lệ</span>
+      </div>
+    </header>
+
+    <!-- Dashboard Content Grid -->
+    <main class="grid-container">
+
+      <!-- Left Column: Config Forms -->
+      <section class="card config-card">
+        <div class="card-header">
+          <h2>⚙️ Cấu hình Lịch & Delay</h2>
+        </div>
+        <div class="form-group">
+          <label for="scheduleTime">Giờ chạy hàng ngày (HH:MM)</label>
+          <input type="text" id="scheduleTime" placeholder="00:00" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="delayMin">Delay tối thiểu (s)</label>
+            <input type="number" id="delayMin" value="8" min="1" />
+          </div>
+          <div class="form-group">
+            <label for="delayMax">Delay tối đa (s)</label>
+            <input type="number" id="delayMax" value="18" min="1" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="videoLinks">Danh sách Link Video TikTok (Mỗi link 1 dòng)</label>
+          <textarea id="videoLinks" rows="4" placeholder="https://www.tiktok.com/@username/video/..."></textarea>
+        </div>
+      </section>
+
+      <!-- Right Column: Cookies & Telegram -->
+      <section class="card settings-card">
+        <div class="card-header">
+          <h2>🍪 Cookie TikTok & Telegram Notifier</h2>
+        </div>
+        <div class="form-group">
+          <label for="cookieJsonInput">Dán nội dung `cookies.json` (Export từ EditThisCookie)</label>
+          <textarea id="cookieJsonInput" rows="4" placeholder='[{"name": "sessionid", "value": "..."}]'></textarea>
+          <button id="btnSaveCookies" class="btn btn-secondary">Lưu & Thử Cookie</button>
+        </div>
+
+        <hr class="divider" />
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="telegramEnabled" />
+            <span>Bật thông báo Telegram Bot</span>
+          </label>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="telegramBotToken">Bot Token</label>
+            <input type="text" id="telegramBotToken" placeholder="123456:ABC-DEF..." />
+          </div>
+          <div class="form-group">
+            <label for="telegramChatId">Chat ID</label>
+            <input type="text" id="telegramChatId" placeholder="12345678" />
+          </div>
+        </div>
+      </section>
+
+      <!-- Full Width Column: Recipients List -->
+      <section class="card recipients-card">
+        <div class="card-header flex-header">
+          <h2>👥 Danh sách Người nhận Streak</h2>
+          <div class="action-buttons">
+            <button id="btnSelectAll" class="btn btn-small btn-outline">Chọn tất cả</button>
+            <button id="btnDeselectAll" class="btn btn-small btn-outline">Bỏ chọn tất cả</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="newRecipientInput">Thêm người nhận mới (Nhập nickname hoặc @username)</label>
+          <div class="input-with-button">
+            <input type="text" id="newRecipientInput" placeholder="@username_hoac_nickname" />
+            <button id="btnAddRecipient" class="btn btn-primary">Thêm</button>
+          </div>
+        </div>
+        <div id="recipientsList" class="recipients-grid">
+          <!-- Dynamically populated -->
+        </div>
+      </section>
+
+      <!-- Control & Action Bar -->
+      <section class="card action-card">
+        <div class="action-bar">
+          <div class="status-message">
+            <span class="label">Trạng thái hệ thống:</span>
+            <span id="statusMessage" class="value">Sẵn sàng hoạt động</span>
+          </div>
+          <div class="main-buttons">
+            <button id="btnSaveConfig" class="btn btn-secondary">💾 Lưu Cấu hình</button>
+            <button id="btnStartSender" class="btn btn-success">🚀 Khởi động Gửi Streak</button>
+            <button id="btnStopSender" class="btn btn-danger" disabled>⏹️ Dừng lại</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>TikTok Streak Tool v2 &copy; 2026 Minh Quân. Triển khai mượt mà trên Vercel & Ubuntu VPS.</p>
+    </footer>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

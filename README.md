@@ -1,29 +1,28 @@
-# TikTok Automatic Sender
+# TikTok Automatic Sender (Web Dashboard Version)
 
-Tự động gửi video TikTok hàng ngày đến danh sách bạn bè để duy trì streak.
+Tự động gửi video TikTok hàng ngày đến danh sách bạn bè để duy trì streak với **Giao diện Web Dashboard hiện đại** (Tương thích Vercel & Ubuntu VPS).
 
 ## Tính năng
 
-- Giao diện UI (Tkinter) để quản lý danh sách người nhận
-- Tự động scan danh sách DM và resolve username
-- Hỗ trợ đa nền tảng: Linux, Windows, macOS
-- Lên lịch gửi tự động hàng ngày theo giờ cố định
-- Inject cookie từ file (không cần login lại mỗi lần)
-- Tự động xử lý Screen Time popup, Sleep Hours popup
-- Tuy nhiên, người dùng cần phải tự tay xử lý captcha khi trang yêu cầu.
+- **Web Dashboard UI (Flask & Glassmorphism Theme)**: Quản lý cấu hình, cookies, danh sách bạn bè và video ngay trên trình duyệt di động hoặc máy tính.
+- **Tương thích Vercel Deployment**: Hỗ trợ triển khai nhanh lên Vercel Serverless Platform qua `vercel.json`.
+- **Tự động gửi Streak**: Hỗ trợ đa nền tảng (Linux/Ubuntu, Windows, macOS).
+- **Lên lịch tự động**: Gửi tự động hàng ngày theo giờ cố định.
+- **Inject Cookie**: Hỗ trợ dán hoặc upload file `cookies.json` trực tiếp từ Web UI.
+- **Telegram Notifier**: Gửi thông báo đến Telegram Bot khi gửi thành công hoặc cần xử lý Captcha.
 
 ## Yêu cầu
 
 - Python 3.10+
-- Google Chrome đã cài đặt
-- TikTok account đã đăng nhập
+- Google Chrome / Playwright Chromium
+- Tài khoản TikTok đã đăng nhập
 
 ## Cài đặt
 
 ```bash
 # Clone repo
-git clone https://github.com/minhquan247/daily-streak-tool-tiktok
-cd daily-streak-tool-tiktok
+git clone https://github.com/minhquan247/streak-tool-tiktok-v2.git
+cd streak-tool-tiktok-v2
 
 # Tạo virtual environment
 python3 -m venv .venv
@@ -33,68 +32,24 @@ source .venv/bin/activate  # Linux/macOS
 # Cài dependencies
 pip install -r requirements.txt
 playwright install chromium
-playwright install-deps  # Bắt buộc trên Linux/Ubuntu
 ```
 
-## Cấu hình
+---
 
-### 1. Export cookie từ TikTok
-
-- Cài extension [EditThisCookie](https://chromewebstore.google.com/detail/editthiscookie-v3/ojfebgpkimhlhcblbalbfjblapadhbol)
-- Đăng nhập TikTok trên Chrome
-- Click extension → Export → lưu thành `cookies.json` vào thư mục project
-
-### 2. Cấu hình `config.json`
-
-Tạo file `config.json` từ mẫu `config.example`:
-
-```json
-{
-  "schedule": {
-    "time": "00:00",
-    "timezone": "Asia/Ho_Chi_Minh",
-    "run_on_start": true
-  },
-  "cookie_file": "cookies.json",
-  "tiktok": {
-    "headless": false,
-    "user_data_dir_linux": "~/chrome-debug",
-    "user_data_dir_macos": "~/Library/Application Support/chrome-debug",
-    "user_data_dir_windows": "~\\AppData\\Local\\chrome-debug",
-    "message_delay_seconds": [8, 18],
-    "navigation_timeout_ms": 60000
-  },
-  "recipients": [],
-  "videos": [
-    "https://www.tiktok.com/@username/video/..."
-  ],
-  "telegram": {
-    "enabled": false,
-    "bot_token": "",
-    "chat_id": ""
-  }
-}
-```
-
-## Sử dụng
-
-### Chạy UI (Máy tính cá nhân / Cài đặt ban đầu)
+## 🌐 Chạy Web Dashboard tại Cục Bộ (Local Web App)
 
 ```bash
-python3 ui.py
+python3 app.py
 ```
+Mở trình duyệt truy cập: `http://localhost:5000`
 
-1. Điền thông tin config (giờ gửi, delay, video links)
-2. Click **Scan DM List** để lấy danh sách người nhận
-3. Click **Resolve Usernames** để lấy username thật
-4. Tick chọn người muốn gửi
-5. Click **Start Sender**
+---
 
-### Chạy trực tiếp CLI
+## ☁️ Triển khai Web Dashboard lên Vercel
 
-```bash
-python3 main.py
-```
+1. Cài đặt Vercel CLI hoặc kết nối GitHub repo `minhquan247/streak-tool-tiktok-v2` với [Vercel Dashboard](https://vercel.com).
+2. Khi import dự án vào Vercel, Vercel sẽ tự động phát hiện `vercel.json` và cấu hình Flask Serverless Function (`app.py`).
+3. Nhấn **Deploy** để sở hữu trang Web Dashboard quản lý của riêng bạn.
 
 ---
 
@@ -125,8 +80,8 @@ echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 sudo apt update && sudo apt install -y python3-pip python3-venv git tmux
 
 # Clone repo & truy cập thư mục
-git clone https://github.com/minhquan247/daily-streak-tool-tiktok.git
-cd daily-streak-tool-tiktok
+git clone https://github.com/minhquan247/streak-tool-tiktok-v2.git
+cd streak-tool-tiktok-v2
 
 # Tạo môi trường ảo & cài đặt dependencies
 python3 -m venv .venv
@@ -167,9 +122,10 @@ python3 main.py
 ## Lưu ý
 
 - `cookies.json` hết hạn sau vài tháng → cần export lại
-- Không commit `cookies.json` và `config.json` lên GitHub
+- Không commit `cookies.json` và `config.json` chứa thông tin nhạy cảm lên GitHub
 - Giữ process chạy liên tục để scheduler hoạt động (dùng `tmux` hoặc `screen` trên Linux)
 
 > ⚠️ **Disclaimer:** This project is for educational purposes only. 
 > Automated interaction with TikTok may violate their Terms of Service.
 > Use at your own risk.
+
