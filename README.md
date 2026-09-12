@@ -1,12 +1,12 @@
 # TikTok Automatic Sender (Web Dashboard Version)
 
-Tự động gửi video TikTok hàng ngày đến danh sách bạn bè để duy trì streak với **Giao diện Web Dashboard hiện đại** (Tương thích Vercel & Ubuntu VPS).
+Tự động gửi video TikTok hàng ngày đến danh sách bạn bè để duy trì streak với **Giao diện Web Dashboard hiện đại** (Tương thích VPS Windows & VPS Ubuntu Linux).
 
 ## Tính năng
 
-- **Web Dashboard UI (Flask & Glassmorphism Theme)**: Quản lý cấu hình, cookies, danh sách bạn bè và video ngay trên trình duyệt di động hoặc máy tính.
-- **Tương thích Vercel Deployment**: Hỗ trợ triển khai nhanh lên Vercel Serverless Platform qua `vercel.json`.
-- **Tự động gửi Streak**: Hỗ trợ đa nền tảng (Linux/Ubuntu, Windows, macOS).
+- **Web Dashboard UI (Flask & TikTok Dark Theme)**: Quản lý cấu hình, cookies, danh sách bạn bè và video ngay trên trình duyệt di động hoặc máy tính.
+- **Tính năng Gửi Thử (Test Send)**: Kiểm tra ngay khả năng gửi tin nhắn tới 1 username TikTok bất kỳ.
+- **Tự động gửi Streak**: Hỗ trợ đa nền tảng (VPS Windows, Ubuntu Linux, macOS).
 - **Lên lịch tự động**: Gửi tự động hàng ngày theo giờ cố định.
 - **Inject Cookie**: Hỗ trợ dán hoặc upload file `cookies.json` trực tiếp từ Web UI.
 - **Telegram Notifier**: Gửi thông báo đến Telegram Bot khi gửi thành công hoặc cần xử lý Captcha.
@@ -36,20 +36,12 @@ playwright install chromium
 
 ---
 
-## 🌐 Chạy Web Dashboard tại Cục Bộ (Local Web App)
+## 🌐 Chạy Web Dashboard (VPS Windows / Linux / Máy cá nhân)
 
 ```bash
 python3 app.py
 ```
-Mở trình duyệt truy cập: `http://localhost:5000`
-
----
-
-## ☁️ Triển khai Web Dashboard lên Vercel
-
-1. Cài đặt Vercel CLI hoặc kết nối GitHub repo `minhquan247/streak-tool-tiktok-v2` với [Vercel Dashboard](https://vercel.com).
-2. Khi import dự án vào Vercel, Vercel sẽ tự động phát hiện `vercel.json` và cấu hình Flask Serverless Function (`app.py`).
-3. Nhấn **Deploy** để sở hữu trang Web Dashboard quản lý của riêng bạn.
+Mở trình duyệt truy cập: `http://localhost:5000` (hoặc `http://IP_VPS:5000`)
 
 ---
 

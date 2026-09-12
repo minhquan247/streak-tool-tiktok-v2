@@ -477,3 +477,11 @@ input:focus, textarea:focus {
     align-items: flex-start;
   }
 }
+
+.footer-bar {
+  text-align: center;
+  margin-top: 24px;
+  padding: 16px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
