@@ -397,7 +397,7 @@ class TikTokSender:
     async def _select_recipient(self, page: Page, username: str) -> None:
         normalized_username = username.lstrip("@")
 
-        # Method 1: Try Direct Message button on TikTok user profile page
+        # Bước 1: Lấy Display Name từ Profile
         self.log_status(f"Mở trang cá nhân TikTok của @{normalized_username}...")
         try:
             await page.goto(f"https://www.tiktok.com/@{normalized_username}", wait_until="domcontentloaded", timeout=25000)
@@ -405,70 +405,58 @@ class TikTokSender:
             await handle_sleep_hours_popup(page)
             await wait_for_captcha_if_present(page, self.notifier)
 
-            msg_btn = page.locator(
-                "[data-e2e='user-message-btn'], "
-                "button[aria-label*='Message' i], "
-                "button[aria-label*='Nhắn' i], "
-                "button:has-text('Message'), "
-                "button:has-text('Nhắn tin')"
-            ).first
-
-            if await msg_btn.count() > 0:
-                self.log_status(f"Bấm nút 'Nhắn tin' trên trang cá nhân @{normalized_username}...")
-                await msg_btn.click(timeout=5000)
-                await page.wait_for_timeout(2000)
-                await handle_screen_time_popup(page)
-                await handle_sleep_hours_popup(page)
-                await wait_for_captcha_if_present(page, self.notifier)
-
-                input_locator = page.locator(
-                    ".public-DraftEditor-content, "
-                    "div[contenteditable='true'], "
-                    "[contenteditable='true']"
-                ).first
-                if await input_locator.count() > 0 and await input_locator.is_visible():
-                    self.log_status(f"Đã mở khung chat thành công với @{normalized_username}!")
-                    return
+            display_name_locator = page.locator("h1[data-e2e='user-title']").first
+            if await display_name_locator.count() == 0:
+                display_name_locator = page.locator("[data-e2e='user-title']").first
+            
+            await display_name_locator.wait_for(state="visible", timeout=10000)
+            display_name = (await display_name_locator.inner_text()).strip()
+            self.log_status(f"Đã trích xuất tên hiển thị: '{display_name}'")
         except Exception as exc:
-            logger.warning("Could not open chat via profile for @%s: %s", normalized_username, exc)
-            self.log_status(f"Mở qua profile @{normalized_username} không thành công, thử qua danh sách tin nhắn...", "warn")
+            raise ValueError(f"Không thể truy cập trang cá nhân hoặc lấy Tên hiển thị của @{normalized_username}: {exc}")
 
-        # Method 2: Fallback to Messages Page
-        self.log_status(f"Mở trang TikTok Messages...")
+        # Bước 2: Vào trang Messages và cuộn tìm
+        self.log_status("Mở trang TikTok Messages...")
         await page.goto("https://www.tiktok.com/messages", wait_until="domcontentloaded", timeout=25000)
         await handle_screen_time_popup(page)
         await handle_sleep_hours_popup(page)
         await wait_for_captcha_if_present(page, self.notifier)
-
-        search_input = page.locator("input[placeholder*='Search' i], input[placeholder*='Tìm' i], [data-e2e='dm-search-user']").first
-        if await search_input.count() > 0 and await search_input.is_visible():
-            self.log_status(f"Nhập username @{normalized_username} vào ô tìm kiếm DM...")
-            await search_input.fill(normalized_username)
-            await page.wait_for_timeout(1500)
-
-        conversation_items = page.locator("[data-e2e='dm-new-conversation-item'], [class*='DivConversationItem'], [data-e2e='dm-conversation-item']")
+        
+        conversation_list = page.locator("[data-e2e='dm-new-conversation-list']").first
+        conversation_items = page.locator("[data-e2e='dm-new-conversation-item']")
+        
         try:
-            await conversation_items.first.wait_for(state="visible", timeout=8000)
+            await conversation_items.first.wait_for(state="visible", timeout=15000)
         except Exception:
-            pass
+            raise ValueError("Không thể load danh sách cuộc trò chuyện.")
 
-        count = await conversation_items.count()
-        for i in range(min(count, 15)):
-            item = conversation_items.nth(i)
-            text = (await item.inner_text()).casefold()
-            if normalized_username.casefold() in text:
-                self.log_status(f"Đã chọn cuộc trò chuyện với @{normalized_username}!")
-                await item.click()
-                await page.wait_for_timeout(1000)
-                return
+        normalized_display_name = display_name.casefold()
+        
+        self.log_status(f"Đang quét danh sách tìm '{display_name}'...")
+        for scroll_index in range(10):
+            item_count = await conversation_items.count()
+            for index in range(item_count):
+                item = conversation_items.nth(index)
+                nickname_locator = item.locator("[data-e2e='dm-new-conversation-nickname']")
+                if await nickname_locator.count() > 0:
+                    nickname_text = (await nickname_locator.inner_text()).strip()
+                    if nickname_text.casefold() == normalized_display_name:
+                        self.log_status(f"Đã chọn đúng cuộc trò chuyện với '{nickname_text}'!")
+                        await item.click()
+                        await page.wait_for_timeout(1000)
+                        await handle_screen_time_popup(page)
+                        await handle_sleep_hours_popup(page)
+                        return
 
-        if count > 0:
-            self.log_status(f"Chọn cuộc trò chuyện hiện có trong danh sách...")
-            await conversation_items.first.click()
+            # Nếu chưa tìm thấy thì scroll xuống
+            self.log_status(f"Cuộn danh sách tìm kiếm (Lần {scroll_index + 1})...")
+            try:
+                await conversation_list.evaluate("(element) => element.scrollBy(0, 400)")
+            except Exception:
+                pass
             await page.wait_for_timeout(1000)
-            return
-
-        raise ValueError(f"Không thể mở cuộc trò chuyện cho @{normalized_username}")
+            
+        raise ValueError(f"Không tìm thấy người nhận '{display_name}' trong danh sách tin nhắn sau 10 lần cuộn.")
 
     async def _send_message(self, page: Page, message: str) -> None:
         self.log_status("Đang tìm ô nhập tin nhắn...")
@@ -486,12 +474,22 @@ class TikTokSender:
         await input_locator.wait_for(state="visible", timeout=10000)
         await input_locator.click()
         await page.wait_for_timeout(300)
-        self.log_status("Đang nhập đường dẫn video...")
+        self.log_status("Đang nhập nội dung tin nhắn...")
         await page.keyboard.type(message)
-        await page.wait_for_timeout(300)
+        await page.wait_for_timeout(500)
         self.log_status("Đang gửi tin nhắn (bấm Enter)...")
         await page.keyboard.press("Enter")
-        await page.wait_for_timeout(1500)
+        await page.wait_for_timeout(1000)
+        
+        # Fallback: Click the send button if Enter didn't work
+        try:
+            send_btn = page.locator("svg[data-e2e='send-icon'], button[data-e2e='send-message-button'], div[data-e2e='chat-send-button'], [data-e2e='send-icon']").first
+            if await send_btn.is_visible(timeout=500):
+                self.log_status("Bấm nút Gửi (Send)...")
+                await send_btn.click()
+                await page.wait_for_timeout(1000)
+        except Exception:
+            pass
 
     async def _sleep_between_messages(self) -> None:
         delay_range = self.tiktok_config.get("message_delay_seconds", [8, 18])
