@@ -4,9 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bảng Điều Khiển Gửi Streak TikTok</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <meta name="description" content="Công cụ tự động gửi streak TikTok hàng ngày – hỗ trợ VPS Windows & Ubuntu Linux" />
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
@@ -18,12 +16,10 @@
     <!-- Top Navigation Header -->
     <header class="app-header">
       <div class="brand-group">
-        <div class="brand-logo">
-          <span class="logo-spark">✨</span>
-        </div>
+        <div class="brand-logo">TS</div>
         <div class="brand-info">
-          <h1>TikTok Streak Automation</h1>
-          <p class="tagline">Hệ điều hành: VPS Windows & Ubuntu Linux • Phát triển bởi Minh Quân</p>
+          <h1>TikTok Streak</h1>
+          <p class="tagline">Hỗ trợ VPS Windows & Ubuntu Linux · Phát triển bởi Minh Quân</p>
         </div>
       </div>
       
@@ -42,12 +38,12 @@
     <!-- Main Content Dashboard Grid -->
     <main class="main-grid">
 
-      <!-- Card 1: Gửi Thử Tin Nhắn (Test Send) -->
-      <section class="ui-card card-accent-red animate-fade-in">
+      <!-- Card 1: Gửi Thử Tin Nhắn -->
+      <section class="ui-card card-accent-red animate-card">
         <div class="card-head">
-          <div class="icon-bubble red-bubble">🧪</div>
+          <div class="accent-bar warm"></div>
           <div>
-            <h2>Gửi Thử Tin Nhắn (Test Send)</h2>
+            <h2>Gửi Thử Tin Nhắn</h2>
             <p>Kiểm tra đường truyền và cookie bằng cách gửi thử ngay 1 tin nhắn đến bạn bè.</p>
           </div>
         </div>
@@ -64,15 +60,15 @@
             <input type="text" id="testVideoUrl" placeholder="https://www.tiktok.com/@username/video/123456789" />
           </div>
           <button id="btnTestSend" class="btn btn-primary-red">
-            <span class="btn-text">🚀 Gửi Thử Tin Nhắn Ngay</span>
+            <span class="btn-text">Gửi Thử Tin Nhắn Ngay</span>
           </button>
         </div>
       </section>
 
       <!-- Card 2: Cấu Hình Lịch & Delay -->
-      <section class="ui-card card-accent-blue animate-fade-in" style="animation-delay: 0.1s;">
+      <section class="ui-card card-accent-blue animate-card">
         <div class="card-head">
-          <div class="icon-bubble blue-bubble">⏱️</div>
+          <div class="accent-bar cool"></div>
           <div>
             <h2>Thời Gian & Delay Gửi</h2>
             <p>Cài đặt khung giờ tự động kích hoạt mỗi ngày và khoảng trễ giữa các tin nhắn.</p>
@@ -101,9 +97,9 @@
       </section>
 
       <!-- Card 3: Cookie TikTok & Telegram -->
-      <section class="ui-card card-accent-purple animate-fade-in" style="animation-delay: 0.2s;">
+      <section class="ui-card card-accent-purple animate-card">
         <div class="card-head">
-          <div class="icon-bubble purple-bubble">🔑</div>
+          <div class="accent-bar sunset"></div>
           <div>
             <h2>Quản Lý Cookie & Telegram Bot</h2>
             <p>Cập nhật mã Cookie để duy trì phiên đăng nhập và nhận thông báo qua Telegram.</p>
@@ -115,7 +111,7 @@
             <textarea id="cookieJsonInput" rows="3" placeholder='Dán đoạn mã [ { "name": "sessionid", ... } ] vào đây'></textarea>
           </div>
           <button id="btnSaveCookies" class="btn btn-secondary">
-            <span>💾 Cập Nhật & Kiểm Tra Cookie</span>
+            <span>Cập Nhật & Kiểm Tra Cookie</span>
           </button>
 
           <div class="ui-divider"></div>
@@ -141,10 +137,10 @@
       </section>
 
       <!-- Card 4: Danh Sách Bạn Bè -->
-      <section class="ui-card full-width-card animate-fade-in" style="animation-delay: 0.3s;">
+      <section class="ui-card full-width-card animate-card">
         <div class="card-head flex-space-between">
           <div class="head-title-group">
-            <div class="icon-bubble cyan-bubble">👥</div>
+            <div class="accent-bar green"></div>
             <div>
               <h2>Danh Sách Bạn Bè Nhận Streak</h2>
               <p>Chọn các tài khoản bạn bè sẽ nhận link video gửi streak tự động hàng ngày.</p>
@@ -167,16 +163,16 @@
       </section>
 
       <!-- Card 5: Bottom Control Action Bar -->
-      <section class="ui-card full-width-card control-card animate-fade-in" style="animation-delay: 0.4s;">
+      <section class="ui-card full-width-card control-card animate-card">
         <div class="control-row">
           <div class="live-status-display">
             <span class="status-title-text">Trạng Thái Hiện Tại:</span>
             <span id="statusMessage" class="status-live-text">Sẵn sàng hoạt động</span>
           </div>
           <div class="button-action-group">
-            <button id="btnSaveConfig" class="btn btn-secondary">💾 Lưu Cấu Hình</button>
-            <button id="btnStartSender" class="btn btn-success-green">▶️ Khởi Động Tự Động Gửi</button>
-            <button id="btnStopSender" class="btn btn-danger-dark" disabled>⏹️ Dừng Tiến Trình</button>
+            <button id="btnSaveConfig" class="btn btn-secondary">Lưu Cấu Hình</button>
+            <button id="btnStartSender" class="btn btn-success-green">Khởi Động Tự Động Gửi</button>
+            <button id="btnStopSender" class="btn btn-danger-dark" disabled>Dừng Tiến Trình</button>
           </div>
         </div>
       </section>
@@ -185,7 +181,7 @@
 
     <!-- Footer -->
     <footer class="app-footer">
-      <p>TikTok Streak Automation &copy; 2026 Minh Quân. Hỗ trợ chạy mượt mà 24/7 trên VPS Windows & Ubuntu Linux.</p>
+      <p>TikTok Streak &copy; 2026 Minh Quân. Hỗ trợ chạy mượt mà 24/7 trên VPS Windows & Ubuntu Linux.</p>
     </footer>
   </div>
 

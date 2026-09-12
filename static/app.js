@@ -30,7 +30,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentRecipients = [];
 
-  // Hiển thị Thông Báo Toast nổi bật
+  // ===========================================
+  // Card Entrance Animations (Intersection Observer)
+  // ===========================================
+  const animateCards = document.querySelectorAll('.animate-card');
+  const observerOptions = {
+    root: null,
+    rootMargin: '0px 0px -40px 0px',
+    threshold: 0.1,
+  };
+
+  const cardObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry, index) => {
+      if (entry.isIntersecting) {
+        // Stagger the animation delay for sequential reveal
+        const cardIndex = Array.from(animateCards).indexOf(entry.target);
+        entry.target.style.animationDelay = `${cardIndex * 0.08}s`;
+        entry.target.classList.add('visible');
+        cardObserver.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  animateCards.forEach((card) => cardObserver.observe(card));
+
+  // ===========================================
+  // Toast Notification System
+  // ===========================================
   function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
@@ -38,13 +64,46 @@ document.addEventListener('DOMContentLoaded', () => {
     toastContainer.appendChild(toast);
     setTimeout(() => {
       toast.style.opacity = '0';
-      toast.style.transform = 'translateX(20px)';
-      toast.style.transition = 'all 0.3s ease';
-      setTimeout(() => toast.remove(), 300);
-    }, 4000);
+      toast.style.transform = 'translateX(30px) scale(0.95)';
+      toast.style.transition = 'all 0.35s ease';
+      setTimeout(() => toast.remove(), 350);
+    }, 4200);
   }
 
-  // Tải cấu hình ban đầu
+  // ===========================================
+  // Button Ripple Effect
+  // ===========================================
+  document.querySelectorAll('.btn').forEach((btn) => {
+    btn.addEventListener('click', function (e) {
+      const ripple = document.createElement('span');
+      const rect = this.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      ripple.style.width = ripple.style.height = `${size}px`;
+      ripple.style.left = `${e.clientX - rect.left - size / 2}px`;
+      ripple.style.top = `${e.clientY - rect.top - size / 2}px`;
+      ripple.style.position = 'absolute';
+      ripple.style.borderRadius = '50%';
+      ripple.style.background = 'rgba(255,255,255,0.3)';
+      ripple.style.transform = 'scale(0)';
+      ripple.style.animation = 'rippleExpand 0.5s ease forwards';
+      ripple.style.pointerEvents = 'none';
+      this.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 550);
+    });
+  });
+
+  // Inject ripple keyframes
+  const rippleStyle = document.createElement('style');
+  rippleStyle.textContent = `
+    @keyframes rippleExpand {
+      to { transform: scale(2.5); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(rippleStyle);
+
+  // ===========================================
+  // Load Config
+  // ===========================================
   async function loadConfig() {
     try {
       const res = await fetch('/api/config');
@@ -81,16 +140,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // ===========================================
+  // Render Recipients
+  // ===========================================
   function renderRecipients() {
     recipientsListContainer.innerHTML = '';
     if (currentRecipients.length === 0) {
-      recipientsListContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 13px; padding: 12px 0;">Chưa có người nhận nào. Vui lòng thêm username ở trên.</p>';
+      recipientsListContainer.innerHTML =
+        '<p style="color: var(--text-muted); font-size: 13px; padding: 12px 0;">Chưa có người nhận nào. Vui lòng thêm username ở trên.</p>';
       return;
     }
 
     currentRecipients.forEach((rec, idx) => {
       const item = document.createElement('div');
       item.className = 'user-item-box';
+      item.style.animationDelay = `${idx * 0.04}s`;
       const displayName = rec.name || rec.username;
       const handle = rec.username ? `@${rec.username}` : '(Chưa xác minh)';
       const initial = (displayName[0] || 'T').toUpperCase();
@@ -112,13 +176,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.btn-remove').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         const index = parseInt(e.target.dataset.index);
-        currentRecipients.splice(index, 1);
-        renderRecipients();
+        const box = e.target.closest('.user-item-box');
+        box.style.transition = 'all 0.3s ease';
+        box.style.opacity = '0';
+        box.style.transform = 'translateX(20px) scale(0.95)';
+        setTimeout(() => {
+          currentRecipients.splice(index, 1);
+          renderRecipients();
+        }, 300);
       });
     });
   }
 
-  // Lưu Cấu Hình
+  // ===========================================
+  // Save Config
+  // ===========================================
   async function saveConfig() {
     const videoList = videoLinksInput.value
       .split('\n')
@@ -174,7 +246,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Lưu Cookies
+  // ===========================================
+  // Save Cookies
+  // ===========================================
   btnSaveCookies.addEventListener('click', async () => {
     const rawCookies = cookieJsonInput.value.trim();
     if (!rawCookies) {
@@ -202,7 +276,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Thêm người nhận
+  // ===========================================
+  // Add Recipient
+  // ===========================================
   btnAddRecipient.addEventListener('click', () => {
     const val = newRecipientInput.value.trim();
     if (!val) return;
@@ -213,8 +289,17 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast(`Đã thêm @${cleanUsername} vào danh sách!`, 'success');
   });
 
+  // Allow Enter key to add recipient
+  newRecipientInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      btnAddRecipient.click();
+    }
+  });
+
   btnSelectAll.addEventListener('click', () => {
     document.querySelectorAll('.user-item-box input[type="checkbox"]').forEach((box) => (box.checked = true));
+    showToast('Đã chọn tất cả', 'success');
   });
 
   btnDeselectAll.addEventListener('click', () => {
@@ -223,7 +308,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnSaveConfig.addEventListener('click', saveConfig);
 
-  // Gửi Thử Tin Nhắn (Test Send)
+  // ===========================================
+  // Test Send
+  // ===========================================
   btnTestSend.addEventListener('click', async () => {
     const targetUser = testUsernameInput.value.trim().replace(/^@/, '');
     const videoUrl = testVideoUrlInput.value.trim();
@@ -260,7 +347,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Bắt đầu gửi tự động
+  // ===========================================
+  // Start / Stop Sender
+  // ===========================================
   btnStartSender.addEventListener('click', async () => {
     await saveConfig();
     try {
@@ -281,7 +370,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Dừng tiến trình
   btnStopSender.addEventListener('click', async () => {
     try {
       const res = await fetch('/api/stop', { method: 'POST' });
@@ -297,7 +385,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Cập nhật trạng thái định kỳ
+  // ===========================================
+  // Auto Status Polling
+  // ===========================================
   setInterval(async () => {
     try {
       const res = await fetch('/api/status');
